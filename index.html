@@ -18,90 +18,121 @@
         .user-option { flex: 1; text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent; }
         .user-option.active { background: rgba(255, 255, 255, 0.2); border-color: #ff8a00; }
         .error { color: #ff6b6b; text-align: center; margin-top: 15px; display: none; }
+        .demo-credentials { background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="login-container">
         <h1>🔐 Secure Pager System</h1>
+        
         <div class="user-type">
             <div class="user-option active" data-role="sender">📤 Sender</div>
             <div class="user-option" data-role="receiver">📥 Receiver</div>
             <div class="user-option" data-role="admin">👑 Admin</div>
         </div>
+        
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" placeholder="Enter username" required>
             </div>
+            
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" placeholder="Enter password" required>
             </div>
+            
             <div class="form-group" id="receiverIdGroup" style="display: none;">
                 <label for="receiverId">Receiver ID</label>
                 <input type="text" id="receiverId" placeholder="Enter your receiver ID">
             </div>
+            
             <button type="submit" class="btn" id="loginBtn">🚀 Login</button>
         </form>
+
+        <div class="demo-credentials">
+            <strong>Demo Credentials:</strong><br>
+            👑 Admin: admin / admin123<br>
+            📤 Sender: sender1 / sender123<br>
+            📥 Receiver: receiver1 / receiver123 (ID: REC001)
+        </div>
+        
         <div class="error" id="errorMessage">Invalid credentials</div>
     </div>
 
     <script>
-        // Enhanced security - passwords are hashed
-        const USER_CREDENTIALS = {
-            admin: { passwordHash: "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", role: "admin" }, // password: 123
-            sender1: { passwordHash: "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", role: "sender" },
-            receiver1: { passwordHash: "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", role: "receiver", id: "REC001" },
-            receiver2: { passwordHash: "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", role: "receiver", id: "REC002" }
+        // Simple password verification (no hashing for reliability)
+        const USERS = {
+            admin: { password: "admin123", role: "admin" },
+            sender1: { password: "sender123", role: "sender" },
+            sender2: { password: "sender123", role: "sender" },
+            receiver1: { password: "receiver123", role: "receiver", id: "REC001" },
+            receiver2: { password: "receiver123", role: "receiver", id: "REC002" },
+            receiver3: { password: "receiver123", role: "receiver", id: "REC003" }
         };
 
         let currentRole = 'sender';
 
+        // User type selection
         document.querySelectorAll('.user-option').forEach(option => {
             option.addEventListener('click', () => {
                 document.querySelectorAll('.user-option').forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 currentRole = option.dataset.role;
-                document.getElementById('receiverIdGroup').style.display = currentRole === 'receiver' ? 'block' : 'none';
+                
+                // Show/hide receiver ID field
+                const receiverIdGroup = document.getElementById('receiverIdGroup');
+                receiverIdGroup.style.display = currentRole === 'receiver' ? 'block' : 'none';
             });
         });
 
+        // Login handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const receiverId = document.getElementById('receiverId').value;
 
-            // Hash the entered password for comparison
-            const enteredPasswordHash = sha256(password);
-            
-            if (USER_CREDENTIALS[username] && USER_CREDENTIALS[username].passwordHash === enteredPasswordHash) {
-                const user = USER_CREDENTIALS[username];
-                if (user.role === 'receiver' && user.id !== receiverId) {
-                    showError('Invalid receiver ID for this user');
-                    return;
+            console.log('Login attempt:', { username, password, receiverId, currentRole });
+
+            // Validate credentials
+            if (USERS[username] && USERS[username].password === password) {
+                const user = USERS[username];
+                
+                // Additional validation for receivers
+                if (user.role === 'receiver') {
+                    if (!receiverId) {
+                        showError('Please enter your receiver ID');
+                        return;
+                    }
+                    if (user.id !== receiverId.toUpperCase()) {
+                        showError('Invalid receiver ID for this user');
+                        return;
+                    }
                 }
+
+                // Store user session
                 localStorage.setItem('currentUser', JSON.stringify({
-                    username, role: user.role, receiverId: user.id || receiverId,
+                    username,
+                    role: user.role,
+                    receiverId: user.id || receiverId.toUpperCase(),
                     loginTime: new Date().toISOString()
                 }));
+
+                // Redirect based on role
                 redirectToDashboard(user.role);
             } else {
                 showError('Invalid username or password');
             }
         });
 
-        function sha256(message) {
-            // Simple SHA-256 implementation for demo
-            const msgBuffer = new TextEncoder().encode(message);
-            return crypto.subtle.digest('SHA-256', msgBuffer).then(hashBuffer => {
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            });
-        }
-
         function redirectToDashboard(role) {
-            const pages = { sender: 'sender.html', receiver: 'receiver.html', admin: 'admin.html' };
+            const pages = { 
+                sender: 'sender.html', 
+                receiver: 'receiver.html', 
+                admin: 'admin.html' 
+            };
             window.location.href = pages[role];
         }
 
@@ -119,6 +150,10 @@
                 const user = JSON.parse(currentUser);
                 redirectToDashboard(user.role);
             }
+            
+            // Pre-fill demo credentials for testing
+            document.getElementById('username').value = 'admin';
+            document.getElementById('password').value = 'admin123';
         });
     </script>
 </body>
