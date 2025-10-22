@@ -251,6 +251,7 @@
             border-radius: 12px;
             font-size: 0.7rem;
             font-weight: 600;
+            color: white;
         }
 
         .badge-success { background: var(--success); }
@@ -268,13 +269,9 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
+            color: white;
             margin-right: 8px;
         }
-
-        .log-level-info { color: var(--info); }
-        .log-level-warning { color: var(--warning); }
-        .log-level-error { color: var(--danger); }
-        .log-level-success { color: var(--success); }
 
         .empty-state {
             text-align: center;
@@ -365,6 +362,25 @@
             display: block;
         }
 
+        .cloud-sync {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--tertiary);
+            animation: pulse 1.5s infinite;
+        }
+
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -403,10 +419,15 @@
 
         <div class="connection-status">
             <div class="status-indicator" id="statusIndicator"></div>
-            <span id="statusText">Checking connection...</span>
+            <span id="statusText">Checking cloud connection...</span>
             <span style="margin-left: auto; font-size: 0.8rem;">
                 Last updated: <span id="lastUpdated">-</span>
             </span>
+        </div>
+
+        <div class="cloud-sync">
+            <div class="sync-indicator"></div>
+            <span>Auto-syncing with cloud database every 5 seconds</span>
         </div>
 
         <div class="stats-grid">
@@ -440,10 +461,10 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-database"></i>
                 </div>
-                <div class="stat-number" id="systemHealth">100%</div>
-                <div class="stat-label">System Health</div>
+                <div class="stat-number" id="cloudStatus">Online</div>
+                <div class="stat-label">Cloud Status</div>
             </div>
         </div>
 
@@ -501,7 +522,6 @@
                         <select id="statusFilter" class="form-control">
                             <option value="">All Status</option>
                             <option value="sent">Sent</option>
-                            <option value="delivered">Delivered</option>
                             <option value="read">Read</option>
                         </select>
                     </div>
@@ -555,7 +575,6 @@
                         <select id="logActionFilter" class="form-control">
                             <option value="">All Actions</option>
                             <option value="login">Login</option>
-                            <option value="logout">Logout</option>
                             <option value="send_message">Send Message</option>
                             <option value="read_message">Read Message</option>
                         </select>
@@ -580,7 +599,6 @@
                                 <th>Role</th>
                                 <th>Action</th>
                                 <th>Details</th>
-                                <th>Device</th>
                             </tr>
                         </thead>
                         <tbody id="logsTableBody">
@@ -628,10 +646,162 @@
     <div class="notification" id="notification"></div>
 
     <script>
+        // Cloud Storage Class (Same as other pages)
+        class CloudStorage {
+            constructor() {
+                this.API_KEY = '$2a$10$/8bOzUCg/s1ybR/cGuRooOKeGep3PsFx6Ocq2axmulCMx9FdxP4L2';
+                this.BIN_ID = '68f91f62d0ea881f40b3d484';
+                this.BASE_URL = 'https://api.jsonbin.io/v3/b';
+                this.isOnline = navigator.onLine;
+                this.syncInterval = null;
+                this.setupNetworkListeners();
+            }
+
+            async getCloudData() {
+                if (!this.isOnline) return this.getLocalData();
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}/latest`, {
+                        headers: { 'X-Master-Key': this.API_KEY }
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const data = await response.json();
+                    return data.record || this.getDefaultData();
+                } catch (error) {
+                    console.error('Cloud read error:', error);
+                    return this.getLocalData();
+                }
+            }
+
+            async saveToCloud(data) {
+                if (!this.isOnline) return false;
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': this.API_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    return response.ok;
+                } catch (error) {
+                    console.error('Cloud save error:', error);
+                    return false;
+                }
+            }
+
+            async syncData() {
+                if (!this.isOnline) return this.getLocalData();
+
+                try {
+                    const cloudData = await this.getCloudData();
+                    const localData = this.getLocalData();
+                    const mergedData = this.mergeData(localData, cloudData);
+                    
+                    this.saveLocally(mergedData);
+                    await this.saveToCloud(mergedData);
+                    
+                    return mergedData;
+                } catch (error) {
+                    return this.getLocalData();
+                }
+            }
+
+            getLocalData() {
+                const data = localStorage.getItem('securePagerData');
+                return data ? JSON.parse(data) : this.getDefaultData();
+            }
+
+            saveLocally(data) {
+                localStorage.setItem('securePagerData', JSON.stringify(data));
+            }
+
+            getDefaultData() {
+                return {
+                    users: [],
+                    messages: [],
+                    logs: [],
+                    system: { lastUpdate: Date.now(), activeSessions: [] }
+                };
+            }
+
+            mergeData(local, cloud) {
+                const allMessages = [...local.messages, ...cloud.messages];
+                const messageMap = new Map();
+                allMessages.forEach(msg => messageMap.set(msg.id, msg));
+                
+                const allUsers = [...local.users, ...cloud.users];
+                const userMap = new Map();
+                allUsers.forEach(user => userMap.set(user.username, user));
+                
+                const allLogs = [...local.logs, ...cloud.logs];
+                const logMap = new Map();
+                allLogs.forEach(log => logMap.set(log.timestamp + log.user + log.action, log));
+
+                return {
+                    users: Array.from(userMap.values()),
+                    messages: Array.from(messageMap.values()).sort((a, b) => b.timestamp - a.timestamp),
+                    logs: Array.from(logMap.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
+                    system: { ...local.system, ...cloud.system, lastUpdate: Date.now() }
+                };
+            }
+
+            async clearAllData() {
+                const defaultData = this.getDefaultData();
+                this.saveLocally(defaultData);
+                if (this.isOnline) {
+                    await this.saveToCloud(defaultData);
+                }
+                return true;
+            }
+
+            setupNetworkListeners() {
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.updateConnectionStatus(true);
+                });
+
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    this.updateConnectionStatus(false);
+                });
+            }
+
+            updateConnectionStatus(online) {
+                const indicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                
+                if (online) {
+                    indicator.className = 'status-indicator status-connected';
+                    statusText.textContent = 'Connected to cloud database';
+                    document.getElementById('cloudStatus').textContent = 'Online';
+                } else {
+                    indicator.className = 'status-indicator status-disconnected';
+                    statusText.textContent = 'Offline mode - local data only';
+                    document.getElementById('cloudStatus').textContent = 'Offline';
+                }
+            }
+
+            startAutoSync() {
+                this.syncInterval = setInterval(async () => {
+                    if (this.isOnline) {
+                        await this.syncData();
+                        window.dispatchEvent(new CustomEvent('pagerDataUpdated'));
+                    }
+                }, 5000);
+            }
+        }
+
+        // Admin Application
         class AdminApp {
             constructor() {
                 this.currentUser = null;
-                this.storage = new PagerStorage();
+                this.storage = new CloudStorage();
                 this.currentTab = 'messages';
                 this.init();
             }
@@ -641,7 +811,7 @@
                 this.setupEventListeners();
                 this.loadDashboardData();
                 this.updateConnectionStatus();
-                this.startAutoRefresh();
+                this.storage.startAutoSync();
             }
 
             checkAuthentication() {
@@ -661,7 +831,6 @@
             }
 
             setupEventListeners() {
-                // Tab navigation
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const tabName = e.currentTarget.dataset.tab;
@@ -669,16 +838,13 @@
                     });
                 });
 
-                // Export buttons
                 document.getElementById('exportMessages').addEventListener('click', () => this.exportMessages());
                 document.getElementById('exportLogs').addEventListener('click', () => this.exportLogs());
                 document.getElementById('exportUsers').addEventListener('click', () => this.exportUsers());
 
-                // Clear buttons
                 document.getElementById('clearMessages').addEventListener('click', () => this.clearMessages());
                 document.getElementById('clearLogs').addEventListener('click', () => this.clearLogs());
 
-                // Filters
                 document.getElementById('senderFilter').addEventListener('change', () => this.loadMessages());
                 document.getElementById('receiverFilter').addEventListener('change', () => this.loadMessages());
                 document.getElementById('priorityFilter').addEventListener('change', () => this.loadMessages());
@@ -688,12 +854,10 @@
                 document.getElementById('logActionFilter').addEventListener('change', () => this.loadLogs());
                 document.getElementById('logTimeFilter').addEventListener('change', () => this.loadLogs());
 
-                // Storage updates
-                window.addEventListener('pagerStorageUpdate', () => {
+                window.addEventListener('pagerDataUpdated', () => {
                     this.loadDashboardData();
                 });
 
-                // Network status
                 window.addEventListener('online', () => this.updateConnectionStatus());
                 window.addEventListener('offline', () => this.updateConnectionStatus());
             }
@@ -701,28 +865,24 @@
             switchTab(tabName) {
                 this.currentTab = tabName;
                 
-                // Update tab buttons
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
                 document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
                 
-                // Update tab content
                 document.querySelectorAll('.tab-content').forEach(content => {
                     content.classList.remove('active');
                 });
                 document.getElementById(`${tabName}Tab`).classList.add('active');
                 
-                // Load tab data
                 if (tabName === 'messages') this.loadMessages();
                 else if (tabName === 'logs') this.loadLogs();
                 else if (tabName === 'users') this.loadUsers();
             }
 
-            loadDashboardData() {
-                const data = this.storage.getLocalData();
+            async loadDashboardData() {
+                const data = await this.storage.syncData();
                 
-                // Update stats
                 const totalMessages = data.messages.length;
                 const unreadMessages = data.messages.filter(msg => !msg.read).length;
                 const activeUsers = this.getActiveUsers(data).length;
@@ -734,17 +894,15 @@
                 document.getElementById('todayMessages').textContent = todayMessages;
                 document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
                 
-                // Load current tab data
-                if (this.currentTab === 'messages') this.loadMessages();
-                else if (this.currentTab === 'logs') this.loadLogs();
-                else if (this.currentTab === 'users') this.loadUsers();
+                if (this.currentTab === 'messages') this.loadMessages(data);
+                else if (this.currentTab === 'logs') this.loadLogs(data);
+                else if (this.currentTab === 'users') this.loadUsers(data);
             }
 
-            loadMessages() {
-                const data = this.storage.getLocalData();
+            loadMessages(data = null) {
+                if (!data) data = this.storage.getLocalData();
                 let messages = [...data.messages].sort((a, b) => b.timestamp - a.timestamp);
                 
-                // Apply filters
                 const senderFilter = document.getElementById('senderFilter').value;
                 const receiverFilter = document.getElementById('receiverFilter').value;
                 const priorityFilter = document.getElementById('priorityFilter').value;
@@ -753,7 +911,10 @@
                 if (senderFilter) messages = messages.filter(msg => msg.sender === senderFilter);
                 if (receiverFilter) messages = messages.filter(msg => msg.receiverId === receiverFilter);
                 if (priorityFilter) messages = messages.filter(msg => msg.priority === priorityFilter);
-                if (statusFilter) messages = messages.filter(msg => msg.status === statusFilter);
+                if (statusFilter) {
+                    if (statusFilter === 'read') messages = messages.filter(msg => msg.read);
+                    else if (statusFilter === 'sent') messages = messages.filter(msg => !msg.read);
+                }
                 
                 this.displayMessages(messages);
                 this.updateFilterOptions(data);
@@ -776,7 +937,7 @@
                 
                 tbody.innerHTML = messages.map(msg => `
                     <tr>
-                        <td>${msg.id.substring(0, 8)}...</td>
+                        <td title="${msg.id}">${msg.id.substring(0, 8)}...</td>
                         <td>${new Date(msg.timestamp).toLocaleString()}</td>
                         <td>
                             <div class="user-avatar">${msg.sender ? msg.sender.charAt(0).toUpperCase() : 'U'}</div>
@@ -790,22 +951,18 @@
                         </td>
                         <td>${this.truncateText(msg.content, 50)}</td>
                         <td>
-                            <span class="badge ${
-                                msg.status === 'read' ? 'badge-success' : 
-                                msg.status === 'delivered' ? 'badge-info' : 'badge-warning'
-                            }">
-                                ${msg.status.toUpperCase()}
+                            <span class="badge ${msg.read ? 'badge-success' : 'badge-warning'}">
+                                ${msg.read ? 'READ' : 'UNREAD'}
                             </span>
                         </td>
                     </tr>
                 `).join('');
             }
 
-            loadLogs() {
-                const data = this.storage.getLocalData();
+            loadLogs(data = null) {
+                if (!data) data = this.storage.getLocalData();
                 let logs = [...data.logs].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
-                // Apply filters
                 const userFilter = document.getElementById('logUserFilter').value;
                 const actionFilter = document.getElementById('logActionFilter').value;
                 const timeFilter = document.getElementById('logTimeFilter').value;
@@ -823,7 +980,7 @@
                 if (logs.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="empty-state">
+                            <td colspan="5" class="empty-state">
                                 <i class="fas fa-clipboard-list"></i>
                                 <div>No logs found</div>
                             </td>
@@ -849,13 +1006,12 @@
                         </td>
                         <td>${this.formatAction(log.action)}</td>
                         <td>${log.details}</td>
-                        <td>${log.device ? log.device.substring(0, 8) + '...' : 'N/A'}</td>
                     </tr>
                 `).join('');
             }
 
-            loadUsers() {
-                const data = this.storage.getLocalData();
+            loadUsers(data = null) {
+                if (!data) data = this.storage.getLocalData();
                 const users = data.users.map(user => {
                     const sentMessages = data.messages.filter(msg => msg.sender === user.username).length;
                     const receivedMessages = data.messages.filter(msg => msg.receiverId === user.id).length;
@@ -903,17 +1059,14 @@
             }
 
             updateFilterOptions(data) {
-                // Update sender filter
                 const senderFilter = document.getElementById('senderFilter');
                 const senders = [...new Set(data.messages.map(msg => msg.sender).filter(Boolean))];
                 this.updateSelectOptions(senderFilter, senders);
                 
-                // Update receiver filter
                 const receiverFilter = document.getElementById('receiverFilter');
                 const receivers = [...new Set(data.messages.map(msg => msg.receiverId).filter(Boolean))];
                 this.updateSelectOptions(receiverFilter, receivers);
                 
-                // Update log user filter
                 const logUserFilter = document.getElementById('logUserFilter');
                 const logUsers = [...new Set(data.logs.map(log => log.user).filter(Boolean))];
                 this.updateSelectOptions(logUserFilter, logUsers);
@@ -930,7 +1083,6 @@
                     selectElement.appendChild(optionElement);
                 });
                 
-                // Restore previous selection if possible
                 if (options.includes(currentValue)) {
                     selectElement.value = currentValue;
                 }
@@ -994,7 +1146,7 @@
 
             exportLogs() {
                 const data = this.storage.getLocalData();
-                const csv = this.convertToCSV(data.logs, ['timestamp', 'user', 'role', 'action', 'details', 'device']);
+                const csv = this.convertToCSV(data.logs, ['timestamp', 'user', 'role', 'action', 'details']);
                 this.downloadCSV(csv, 'pager_logs.csv');
                 showNotification('Logs exported successfully');
             }
@@ -1034,48 +1186,37 @@
             }
 
             // Clear functionality
-            clearMessages() {
+            async clearMessages() {
                 if (confirm('Are you sure you want to clear all messages? This action cannot be undone.')) {
                     const data = this.storage.getLocalData();
                     data.messages = [];
-                    localStorage.setItem('securePagerData', JSON.stringify(data));
+                    this.storage.saveLocally(data);
+                    if (this.storage.isOnline) {
+                        await this.storage.saveToCloud(data);
+                    }
                     this.loadDashboardData();
                     showNotification('All messages cleared');
                 }
             }
 
-            clearLogs() {
+            async clearLogs() {
                 if (confirm('Are you sure you want to clear all logs? This action cannot be undone.')) {
                     const data = this.storage.getLocalData();
                     data.logs = [];
-                    localStorage.setItem('securePagerData', JSON.stringify(data));
+                    this.storage.saveLocally(data);
+                    if (this.storage.isOnline) {
+                        await this.storage.saveToCloud(data);
+                    }
                     this.loadDashboardData();
                     showNotification('All logs cleared');
                 }
             }
 
             updateConnectionStatus() {
-                const indicator = document.getElementById('statusIndicator');
-                const statusText = document.getElementById('statusText');
-                
-                if (navigator.onLine) {
-                    indicator.className = 'status-indicator status-connected';
-                    statusText.textContent = 'Connected to network';
-                } else {
-                    indicator.className = 'status-indicator status-disconnected';
-                    statusText.textContent = 'Offline mode - local data only';
-                }
-            }
-
-            startAutoRefresh() {
-                // Refresh dashboard every 5 seconds
-                setInterval(() => {
-                    this.loadDashboardData();
-                }, 5000);
+                this.storage.updateConnectionStatus(navigator.onLine);
             }
         }
 
-        // Show notification function
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -1085,27 +1226,6 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
-        }
-
-        // Include the PagerStorage class
-        class PagerStorage {
-            constructor() {
-                this.STORAGE_KEY = 'securePagerData';
-            }
-
-            getLocalData() {
-                const data = localStorage.getItem(this.STORAGE_KEY);
-                return data ? JSON.parse(data) : this.getDefaultData();
-            }
-
-            getDefaultData() {
-                return {
-                    users: [],
-                    messages: [],
-                    logs: [],
-                    system: { lastUpdate: Date.now(), activeSessions: [] }
-                };
-            }
         }
 
         // Initialize the admin application
