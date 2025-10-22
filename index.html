@@ -3,158 +3,646 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Pager System - Login</title>
+    <title>SecurePager Pro | Multi-Device System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); color: white; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .login-container { background: rgba(0, 0, 0, 0.4); padding: 40px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 400px; }
-        h1 { text-align: center; margin-bottom: 30px; font-size: 2rem; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 500; }
-        input, select { width: 100%; padding: 12px 15px; border-radius: 8px; border: none; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); }
-        .btn { background: linear-gradient(135deg, #ff8a00, #e52e71); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; width: 100%; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); }
-        .user-type { display: flex; gap: 10px; margin-bottom: 20px; }
-        .user-option { flex: 1; text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent; }
-        .user-option.active { background: rgba(255, 255, 255, 0.2); border-color: #ff8a00; }
-        .error { color: #ff6b6b; text-align: center; margin-top: 15px; display: none; }
-        .demo-credentials { background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 0.9rem; }
+        :root {
+            --primary: #1a2a6c;
+            --secondary: #b21f1f;
+            --tertiary: #fdbb2d;
+            --success: #28a745;
+            --warning: #ff8a00;
+            --danger: #e52e71;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--tertiary));
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--light);
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--light), var(--tertiary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-connected {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-disconnected {
+            background: var(--danger);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--tertiary);
+            box-shadow: 0 0 0 2px rgba(253, 187, 45, 0.2);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 12px 15px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
+        }
+
+        .demo-accounts {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .demo-accounts h3 {
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: var(--tertiary);
+        }
+
+        .account-type {
+            margin-bottom: 10px;
+        }
+
+        .account-type:last-child {
+            margin-bottom: 0;
+        }
+
+        .account-type strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .account-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .account {
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--success);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+            color: var(--dark);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .sync-info {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 480px) {
+            .glass-card {
+                padding: 20px;
+            }
+            
+            .logo h1 {
+                font-size: 1.8rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h1>🔐 Secure Pager System</h1>
-        
-        <div class="user-type">
-            <div class="user-option active" data-role="sender">📤 Sender</div>
-            <div class="user-option" data-role="receiver">📥 Receiver</div>
-            <div class="user-option" data-role="admin">👑 Admin</div>
+    <div class="container">
+        <div class="glass-card">
+            <div class="logo">
+                <h1><i class="fas fa-broadcast-tower"></i> SecurePager Pro</h1>
+                <p>Multi-Device Enterprise Communication</p>
+            </div>
+            
+            <div class="connection-status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="statusText">Connecting to network...</span>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="btn">Login to Dashboard</button>
+                <button type="button" class="btn btn-secondary" id="offlineMode">
+                    <i class="fas fa-wifi-slash"></i> Use Offline Mode
+                </button>
+            </form>
+            
+            <div class="sync-info">
+                <i class="fas fa-sync-alt"></i> Real-time sync across all devices
+            </div>
+            
+            <div class="demo-accounts">
+                <h3><i class="fas fa-info-circle"></i> Demo Accounts</h3>
+                
+                <div class="account-type">
+                    <strong>Admin</strong>
+                    <div class="account-details">
+                        <div class="account">Username: admin</div>
+                        <div class="account">Password: admin123</div>
+                    </div>
+                </div>
+                
+                <div class="account-type">
+                    <strong>Senders</strong>
+                    <div class="account-details">
+                        <div class="account">Username: sender1</div>
+                        <div class="account">Password: sender123</div>
+                        <div class="account">Username: sender2</div>
+                        <div class="account">Password: sender123</div>
+                    </div>
+                </div>
+                
+                <div class="account-type">
+                    <strong>Receivers</strong>
+                    <div class="account-details">
+                        <div class="account">Username: receiver1</div>
+                        <div class="account">Password: receiver123</div>
+                        <div class="account">ID: REC001</div>
+                        <div class="account">Username: receiver2</div>
+                        <div class="account">Password: receiver123</div>
+                        <div class="account">ID: REC002</div>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" placeholder="Enter username" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter password" required>
-            </div>
-            
-            <div class="form-group" id="receiverIdGroup" style="display: none;">
-                <label for="receiverId">Receiver ID</label>
-                <input type="text" id="receiverId" placeholder="Enter your receiver ID">
-            </div>
-            
-            <button type="submit" class="btn" id="loginBtn">🚀 Login</button>
-        </form>
-
-        <div class="demo-credentials">
-            <strong>Demo Credentials:</strong><br>
-            👑 Admin: admin / admin123<br>
-            📤 Sender: sender1 / sender123<br>
-            📥 Receiver: receiver1 / receiver123 (ID: REC001)
+        <div class="footer">
+            <p>SecurePager Pro &copy; 2023 | Multi-Device Enterprise Solution</p>
         </div>
-        
-        <div class="error" id="errorMessage">Invalid credentials</div>
     </div>
 
+    <div class="notification" id="notification"></div>
+
     <script>
-        // Simple password verification (no hashing for reliability)
-        const USERS = {
-            admin: { password: "admin123", role: "admin" },
-            sender1: { password: "sender123", role: "sender" },
-            sender2: { password: "sender123", role: "sender" },
-            receiver1: { password: "receiver123", role: "receiver", id: "REC001" },
-            receiver2: { password: "receiver123", role: "receiver", id: "REC002" },
-            receiver3: { password: "receiver123", role: "receiver", id: "REC003" }
-        };
+        // Enhanced Storage Manager with Multi-Device Support
+        class PagerStorage {
+            constructor() {
+                this.STORAGE_KEY = 'securePagerData';
+                this.SYNC_INTERVAL = 2000; // 2 seconds
+                this.lastSync = 0;
+                this.isOnline = navigator.onLine;
+                this.setupNetworkListeners();
+                this.startSyncInterval();
+            }
 
-        let currentRole = 'sender';
+            setupNetworkListeners() {
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.updateConnectionStatus();
+                    this.syncData();
+                });
 
-        // User type selection
-        document.querySelectorAll('.user-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.user-option').forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                currentRole = option.dataset.role;
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    this.updateConnectionStatus();
+                });
+            }
+
+            updateConnectionStatus() {
+                const indicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
                 
-                // Show/hide receiver ID field
-                const receiverIdGroup = document.getElementById('receiverIdGroup');
-                receiverIdGroup.style.display = currentRole === 'receiver' ? 'block' : 'none';
-            });
-        });
+                if (this.isOnline) {
+                    indicator.className = 'status-indicator status-connected';
+                    statusText.textContent = 'Connected to network';
+                } else {
+                    indicator.className = 'status-indicator status-disconnected';
+                    statusText.textContent = 'Offline mode - local data only';
+                }
+            }
 
-        // Login handler
+            // Simulate cloud storage using localStorage (in real app, this would be API calls)
+            async syncData() {
+                if (!this.isOnline) return;
+
+                try {
+                    const localData = this.getLocalData();
+                    const cloudData = this.getCloudData();
+                    
+                    // Merge strategies - cloud wins in conflicts
+                    const mergedData = this.mergeData(localData, cloudData);
+                    
+                    this.saveToCloud(mergedData);
+                    this.saveLocally(mergedData);
+                    
+                    this.lastSync = Date.now();
+                    this.triggerStorageEvent();
+                    
+                } catch (error) {
+                    console.error('Sync error:', error);
+                }
+            }
+
+            getLocalData() {
+                const data = localStorage.getItem(this.STORAGE_KEY);
+                return data ? JSON.parse(data) : this.getDefaultData();
+            }
+
+            getCloudData() {
+                // In a real application, this would fetch from a server
+                // For demo, we'll use a shared localStorage key to simulate cloud
+                const cloudKey = 'securePagerCloud';
+                const data = localStorage.getItem(cloudKey);
+                return data ? JSON.parse(data) : this.getDefaultData();
+            }
+
+            saveToCloud(data) {
+                // Simulate cloud save
+                const cloudKey = 'securePagerCloud';
+                localStorage.setItem(cloudKey, JSON.stringify(data));
+            }
+
+            saveLocally(data) {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+            }
+
+            getDefaultData() {
+                return {
+                    users: [
+                        { username: 'admin', password: 'admin123', role: 'admin', id: 'ADMIN001', lastActive: Date.now() },
+                        { username: 'sender1', password: 'sender123', role: 'sender', id: 'SEN001', lastActive: Date.now() },
+                        { username: 'sender2', password: 'sender123', role: 'sender', id: 'SEN002', lastActive: Date.now() },
+                        { username: 'receiver1', password: 'receiver123', role: 'receiver', id: 'REC001', lastActive: Date.now() },
+                        { username: 'receiver2', password: 'receiver123', role: 'receiver', id: 'REC002', lastActive: Date.now() }
+                    ],
+                    messages: [],
+                    logs: [],
+                    system: {
+                        lastUpdate: Date.now(),
+                        activeSessions: []
+                    }
+                };
+            }
+
+            mergeData(local, cloud) {
+                // Simple merge - cloud data takes precedence for messages and logs
+                // Users are merged with conflict resolution
+                const merged = {
+                    users: this.mergeUsers(local.users, cloud.users),
+                    messages: cloud.messages.length > local.messages.length ? cloud.messages : local.messages,
+                    logs: cloud.logs.length > local.logs.length ? cloud.logs : local.logs,
+                    system: cloud.system || local.system
+                };
+                
+                return merged;
+            }
+
+            mergeUsers(localUsers, cloudUsers) {
+                const userMap = new Map();
+                
+                // Add all local users
+                localUsers.forEach(user => {
+                    userMap.set(user.username, { ...user, source: 'local' });
+                });
+                
+                // Merge with cloud users (cloud takes precedence)
+                cloudUsers.forEach(user => {
+                    const existing = userMap.get(user.username);
+                    if (!existing || user.lastActive > existing.lastActive) {
+                        userMap.set(user.username, { ...user, source: 'cloud' });
+                    }
+                });
+                
+                return Array.from(userMap.values());
+            }
+
+            startSyncInterval() {
+                setInterval(() => {
+                    this.syncData();
+                }, this.SYNC_INTERVAL);
+            }
+
+            triggerStorageEvent() {
+                // Trigger custom event for other tabs/windows
+                window.dispatchEvent(new Event('pagerStorageUpdate'));
+            }
+
+            // Enhanced methods for cross-device communication
+            async sendMessage(message) {
+                const data = this.getLocalData();
+                message.id = this.generateId();
+                message.timestamp = Date.now();
+                message.status = 'sent';
+                
+                data.messages.push(message);
+                data.logs.push({
+                    timestamp: Date.now(),
+                    user: message.sender,
+                    action: 'send_message',
+                    details: `Message sent to ${message.receiverId}`,
+                    messageId: message.id
+                });
+                
+                this.saveLocally(data);
+                if (this.isOnline) {
+                    this.saveToCloud(data);
+                }
+                
+                this.triggerStorageEvent();
+                return message;
+            }
+
+            generateId() {
+                return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            }
+
+            // Get messages for a specific receiver
+            getMessagesForReceiver(receiverId) {
+                const data = this.getLocalData();
+                return data.messages.filter(msg => 
+                    msg.receiverId === receiverId || 
+                    (msg.receiver && msg.receiver.id === receiverId)
+                );
+            }
+
+            // Mark message as read
+            markMessageAsRead(messageId) {
+                const data = this.getLocalData();
+                const message = data.messages.find(msg => msg.id === messageId);
+                if (message) {
+                    message.status = 'read';
+                    message.readAt = Date.now();
+                    
+                    data.logs.push({
+                        timestamp: Date.now(),
+                        user: message.receiverId,
+                        action: 'read_message',
+                        details: `Message read: ${messageId}`,
+                        messageId: messageId
+                    });
+                    
+                    this.saveLocally(data);
+                    if (this.isOnline) {
+                        this.saveToCloud(data);
+                    }
+                    this.triggerStorageEvent();
+                }
+            }
+        }
+
+        // Initialize the enhanced storage system
+        const pagerStorage = new PagerStorage();
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification';
+            notification.classList.add(type, 'show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Handle login form submission
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            handleLogin();
+        });
+
+        // Offline mode handler
+        document.getElementById('offlineMode').addEventListener('click', function() {
+            showNotification('Offline mode activated - using local data only', 'warning');
+            handleLogin(true);
+        });
+
+        function handleLogin(offline = false) {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const receiverId = document.getElementById('receiverId').value;
-
-            console.log('Login attempt:', { username, password, receiverId, currentRole });
-
-            // Validate credentials
-            if (USERS[username] && USERS[username].password === password) {
-                const user = USERS[username];
-                
-                // Additional validation for receivers
-                if (user.role === 'receiver') {
-                    if (!receiverId) {
-                        showError('Please enter your receiver ID');
-                        return;
-                    }
-                    if (user.id !== receiverId.toUpperCase()) {
-                        showError('Invalid receiver ID for this user');
-                        return;
-                    }
+            if (!username || !password) {
+                showNotification('Please enter both username and password', 'error');
+                return;
+            }
+            
+            const data = pagerStorage.getLocalData();
+            const user = data.users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                // Update user last active
+                user.lastActive = Date.now();
+                pagerStorage.saveLocally(data);
+                if (pagerStorage.isOnline && !offline) {
+                    pagerStorage.saveToCloud(data);
                 }
-
+                
                 // Store user session
-                localStorage.setItem('currentUser', JSON.stringify({
-                    username,
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                sessionStorage.setItem('deviceId', `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+                
+                // Add login log
+                data.logs.push({
+                    timestamp: new Date().toISOString(),
+                    user: user.username,
                     role: user.role,
-                    receiverId: user.id || receiverId.toUpperCase(),
-                    loginTime: new Date().toISOString()
-                }));
-
+                    action: 'login',
+                    details: `User logged into the system ${offline ? '(offline mode)' : ''}`,
+                    device: sessionStorage.getItem('deviceId')
+                });
+                
+                pagerStorage.saveLocally(data);
+                if (pagerStorage.isOnline && !offline) {
+                    pagerStorage.saveToCloud(data);
+                }
+                
+                showNotification(`Welcome, ${user.username}! ${offline ? '(Offline Mode)' : ''}`);
+                
                 // Redirect based on role
-                redirectToDashboard(user.role);
+                setTimeout(() => {
+                    if (user.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else if (user.role === 'sender') {
+                        window.location.href = 'sender.html';
+                    } else if (user.role === 'receiver') {
+                        window.location.href = 'receiver.html';
+                    }
+                }, 1500);
             } else {
-                showError('Invalid username or password');
+                showNotification('Invalid username or password', 'error');
             }
-        });
-
-        function redirectToDashboard(role) {
-            const pages = { 
-                sender: 'sender.html', 
-                receiver: 'receiver.html', 
-                admin: 'admin.html' 
-            };
-            window.location.href = pages[role];
         }
 
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => errorDiv.style.display = 'none', 3000);
-        }
-
-        // Auto-redirect if already logged in
-        window.addEventListener('load', () => {
-            const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                const user = JSON.parse(currentUser);
-                redirectToDashboard(user.role);
-            }
-            
-            // Pre-fill demo credentials for testing
-            document.getElementById('username').value = 'admin';
-            document.getElementById('password').value = 'admin123';
-        });
+        // Initialize connection status
+        pagerStorage.updateConnectionStatus();
     </script>
 </body>
 </html>
