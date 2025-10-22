@@ -162,6 +162,11 @@
             cursor: pointer;
         }
 
+        .btn-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .message-item {
             background: rgba(255, 255, 255, 0.05);
             padding: 12px;
@@ -244,7 +249,7 @@
                         <textarea id="messageContent" class="form-control" rows="4" placeholder="Type your message..." required></textarea>
                     </div>
 
-                    <button type="submit" class="btn-send">
+                    <button type="submit" class="btn-send" id="sendBtn">
                         <i class="fas fa-paper-plane"></i> Send Message
                     </button>
                 </form>
@@ -275,19 +280,7 @@
             constructor() {
                 this.currentUser = null;
                 this.selectedPriority = 'low';
-                this.storage = {
-                    getUsers: () => JSON.parse(localStorage.getItem('pagerUsers') || '[]'),
-                    getMessages: () => JSON.parse(localStorage.getItem('pagerMessages') || '[]'),
-                    saveMessage: (message) => {
-                        const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-                        message.id = 'msg_' + Date.now();
-                        message.timestamp = Date.now();
-                        message.status = 'sent';
-                        messages.push(message);
-                        localStorage.setItem('pagerMessages', JSON.stringify(messages));
-                        return message;
-                    }
-                };
+                this.storage = new CloudStorage();
                 this.init();
             }
 
@@ -295,6 +288,7 @@
                 this.checkAuth();
                 this.setupEvents();
                 this.loadMessages();
+                this.startPolling();
             }
 
             checkAuth() {
@@ -315,7 +309,6 @@
             }
 
             setupEvents() {
-                // Priority selection
                 document.querySelectorAll('.priority-option').forEach(opt => {
                     opt.addEventListener('click', (e) => {
                         document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('active'));
@@ -324,25 +317,21 @@
                     });
                 });
 
-                // Send message
                 document.getElementById('messageForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.sendMessage();
                 });
 
-                // Refresh
                 document.getElementById('refreshBtn').addEventListener('click', () => {
                     this.loadMessages();
                     this.showNotification('Refreshed');
                 });
-
-                // Auto-refresh every 5 seconds
-                setInterval(() => this.loadMessages(), 5000);
             }
 
-            sendMessage() {
+            async sendMessage() {
                 const receiverId = document.getElementById('receiverId').value.trim();
                 const content = document.getElementById('messageContent').value.trim();
+                const sendBtn = document.getElementById('sendBtn');
 
                 if (!receiverId || !content) {
                     this.showNotification('Please fill all fields', 'error');
@@ -350,12 +339,15 @@
                 }
 
                 // Validate receiver
-                const users = this.storage.getUsers();
-                const receiver = users.find(u => u.id === receiverId && u.role === 'receiver');
+                const data = await this.storage.getData();
+                const receiver = data.users.find(u => u.id === receiverId && u.role === 'receiver');
                 if (!receiver) {
                     this.showNotification('Invalid Receiver ID. Use REC001 or REC002', 'error');
                     return;
                 }
+
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                sendBtn.disabled = true;
 
                 const message = {
                     sender: this.currentUser.username,
@@ -363,30 +355,58 @@
                     receiverId: receiverId,
                     receiver: receiver.username,
                     content: content,
-                    priority: this.selectedPriority
+                    priority: this.selectedPriority,
+                    timestamp: Date.now(),
+                    id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    status: 'sent'
                 };
 
-                this.storage.saveMessage(message);
-                this.showNotification(`Message sent to ${receiverId}`);
-                
-                // Clear form
-                document.getElementById('messageForm').reset();
-                document.querySelector('.priority-low').click();
-                
-                // Reload messages
-                this.loadMessages();
+                try {
+                    // Add message to data and save to cloud
+                    data.messages.push(message);
+                    data.lastUpdate = Date.now();
+                    
+                    const success = await this.storage.saveData(data);
+                    
+                    if (success) {
+                        this.showNotification(`Message sent to ${receiverId}`);
+                    } else {
+                        this.showNotification('Message saved locally (offline mode)');
+                    }
+                    
+                    // Clear form
+                    document.getElementById('messageForm').reset();
+                    document.querySelector('.priority-low').click();
+                    
+                    // Reload messages
+                    this.loadMessages();
+                    
+                } catch (error) {
+                    this.showNotification('Failed to send message', 'error');
+                } finally {
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                    sendBtn.disabled = false;
+                }
             }
 
-            loadMessages() {
-                const messages = this.storage.getMessages();
-                const myMessages = messages
-                    .filter(m => m.sender === this.currentUser.username)
-                    .sort((a, b) => b.timestamp - a.timestamp)
-                    .slice(0, 10);
+            async loadMessages() {
+                try {
+                    const data = await this.storage.getData();
+                    const myMessages = data.messages
+                        .filter(m => m.sender === this.currentUser.username)
+                        .sort((a, b) => b.timestamp - a.timestamp)
+                        .slice(0, 10);
 
+                    this.displayMessages(myMessages);
+                } catch (error) {
+                    console.error('Failed to load messages:', error);
+                }
+            }
+
+            displayMessages(messages) {
                 const container = document.getElementById('messagesList');
                 
-                if (myMessages.length === 0) {
+                if (messages.length === 0) {
                     container.innerHTML = `
                         <div style="text-align: center; padding: 20px; opacity: 0.7;">
                             <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i>
@@ -396,7 +416,7 @@
                     return;
                 }
 
-                container.innerHTML = myMessages.map(msg => `
+                container.innerHTML = messages.map(msg => `
                     <div class="message-item ${msg.priority}">
                         <div class="message-header">
                             <strong>To: ${msg.receiverId}</strong>
@@ -420,6 +440,13 @@
                 }[priority] || '#1a2a6c';
             }
 
+            startPolling() {
+                // Refresh messages every 5 seconds
+                setInterval(() => {
+                    this.loadMessages();
+                }, 5000);
+            }
+
             showNotification(message, type = 'success') {
                 const notification = document.getElementById('notification');
                 notification.textContent = message;
@@ -429,6 +456,82 @@
                 setTimeout(() => {
                     notification.classList.remove('show');
                 }, 3000);
+            }
+        }
+
+        // Cloud Storage Class (same as index.html)
+        class CloudStorage {
+            constructor() {
+                this.API_KEY = '$2a$10$/8bOzUCg/s1ybR/cGuRooOKeGep3PsFx6Ocq2axmulCMx9FdxP4L2';
+                this.BIN_ID = '68f91f62d0ea881f40b3d484';
+                this.BASE_URL = 'https://api.jsonbin.io/v3/b';
+                this.isOnline = navigator.onLine;
+            }
+
+            async getData() {
+                if (!this.isOnline) {
+                    return this.getLocalData();
+                }
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}/latest`, {
+                        headers: { 'X-Master-Key': this.API_KEY }
+                    });
+                    
+                    if (!response.ok) throw new Error('API request failed');
+                    
+                    const data = await response.json();
+                    const cloudData = data.record || this.getDefaultData();
+                    
+                    this.saveLocalData(cloudData);
+                    return cloudData;
+                } catch (error) {
+                    return this.getLocalData();
+                }
+            }
+
+            async saveData(data) {
+                this.saveLocalData(data);
+
+                if (!this.isOnline) {
+                    return false;
+                }
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': this.API_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    return response.ok;
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            getLocalData() {
+                try {
+                    const data = localStorage.getItem('pagerData');
+                    return data ? JSON.parse(data) : this.getDefaultData();
+                } catch (error) {
+                    return this.getDefaultData();
+                }
+            }
+
+            saveLocalData(data) {
+                localStorage.setItem('pagerData', JSON.stringify(data));
+            }
+
+            getDefaultData() {
+                return {
+                    users: [],
+                    messages: [],
+                    lastUpdate: Date.now()
+                };
             }
         }
 
