@@ -3,157 +3,678 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Pager - Sender</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #1a2a6c, #fdbb2d); color: white; min-height: 100vh; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 15px; }
-        .card { background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 500; }
-        input, textarea, select { width: 100%; padding: 12px 15px; border-radius: 8px; border: none; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); }
-        textarea { min-height: 120px; resize: vertical; }
-        .btn { background: linear-gradient(135deg, #ff8a00, #e52e71); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-        .btn-block { width: 100%; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); }
-        .notification { position: fixed; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); color: white; padding: 15px 25px; border-radius: 8px; transform: translateX(150%); transition: transform 0.4s ease; z-index: 1000; }
-        .notification.show { transform: translateX(0); }
-        .sent-messages { max-height: 400px; overflow-y: auto; }
-        .message-item { background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff8a00; }
-    </style>
+    <title>SecurePager Pro | Sender Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --secondary: #b21f1f;
+            --tertiary: #fdbb2d;
+            --success: #28a745;
+            --warning: #ff8a00;
+            --danger: #e52e71;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --transition: all 0.3s ease;
+            --priority-high: #e52e71;
+            --priority-medium: #ff8a00;
+            --priority-low: #1a2a6c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--tertiary));
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            color: var(--light);
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--light), var(--tertiary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: var(--glass-bg);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            transition: var(--transition);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            color: var(--tertiary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--tertiary);
+            box-shadow: 0 0 0 2px rgba(253, 187, 45, 0.2);
+        }
+
+        .priority-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .priority-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .priority-option.active {
+            border-color: currentColor;
+            transform: scale(1.05);
+        }
+
+        .priority-high { background: var(--priority-high); color: white; }
+        .priority-medium { background: var(--priority-medium); color: white; }
+        .priority-low { background: var(--priority-low); color: white; }
+
+        .btn-send {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            background: linear-gradient(to right, var(--success), #20c997);
+        }
+
+        .messages-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--priority-low);
+            transition: var(--transition);
+        }
+
+        .message-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .message-item.high { border-left-color: var(--priority-high); }
+        .message-item.medium { border-left-color: var(--priority-medium); }
+        .message-item.low { border-left-color: var(--priority-low); }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .receiver-id {
+            font-weight: 600;
+            color: var(--tertiary);
+        }
+
+        .priority-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .message-content {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .status-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+        }
+
+        .status-sent { background: var(--info); }
+        .status-delivered { background: var(--success); }
+        .status-read { background: var(--tertiary); }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--success);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-connected {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-disconnected {
+            background: var(--danger);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📤 Sender Dashboard</h1>
+        <div class="header">
+            <div class="logo">
+                <h1><i class="fas fa-paper-plane"></i> SecurePager Pro</h1>
+                <p>Sender Dashboard</p>
+            </div>
             <div class="user-info">
-                <div>Welcome, <strong id="currentUser"></strong></div>
-                <button class="btn" onclick="logout()" style="margin-top: 10px;">🚪 Logout</button>
+                <div class="user-badge" id="userBadge">
+                    <i class="fas fa-user"></i> <span id="username">Loading...</span>
+                </div>
+                <a href="index.html" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </div>
-        </header>
-        
-        <div class="card">
-            <h2 style="margin-bottom: 20px;">💬 Send Message</h2>
-            <div class="form-group">
-                <label for="receiverId">Receiver ID</label>
-                <input type="text" id="receiverId" placeholder="Enter receiver ID (REC001, REC002)">
-            </div>
-            <div class="form-group">
-                <label for="messagePriority">Priority</label>
-                <select id="messagePriority">
-                    <option value="low">🟢 Low Priority</option>
-                    <option value="medium" selected>🟡 Medium Priority</option>
-                    <option value="high">🔴 High Priority</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="messageText">Message</label>
-                <textarea id="messageText" placeholder="Type your message here..."></textarea>
-            </div>
-            <button class="btn btn-block" onclick="sendMessage()">📤 Send Message</button>
         </div>
-        
-        <div class="card">
-            <h2 style="margin-bottom: 20px;">📋 Recently Sent</h2>
-            <div class="sent-messages" id="sentMessages"></div>
+
+        <div class="connection-status">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText">Checking connection...</span>
+        </div>
+
+        <div class="dashboard">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-edit"></i> Compose Message</h2>
+                </div>
+                
+                <form id="messageForm">
+                    <div class="form-group">
+                        <label for="receiverId"><i class="fas fa-user"></i> Receiver ID</label>
+                        <input type="text" id="receiverId" class="form-control" 
+                               placeholder="Enter Receiver ID (e.g., REC001)" required
+                               list="receiverList">
+                        <datalist id="receiverList">
+                            <option value="REC001">
+                            <option value="REC002">
+                        </datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-exclamation-circle"></i> Priority</label>
+                        <div class="priority-selector">
+                            <div class="priority-option priority-low active" data-priority="low">
+                                <i class="fas fa-arrow-down"></i> Low
+                            </div>
+                            <div class="priority-option priority-medium" data-priority="medium">
+                                <i class="fas fa-minus"></i> Medium
+                            </div>
+                            <div class="priority-option priority-high" data-priority="high">
+                                <i class="fas fa-arrow-up"></i> High
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="messageContent"><i class="fas fa-comment"></i> Message</label>
+                        <textarea id="messageContent" class="form-control" 
+                                  rows="5" placeholder="Type your message here..." 
+                                  required maxlength="500"></textarea>
+                        <div class="char-count" style="text-align: right; margin-top: 5px; font-size: 0.8rem;">
+                            <span id="charCount">0</span>/500 characters
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-send">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-history"></i> Recent Messages</h2>
+                    <button class="btn" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                
+                <div class="messages-list" id="messagesList">
+                    <!-- Messages will be loaded here -->
+                    <div class="empty-state">
+                        <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.3; margin-bottom: 15px;"></i>
+                        <p>No messages sent yet</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="notification" id="notification">✅ Message sent successfully!</div>
+    <div class="notification" id="notification"></div>
 
     <script>
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser || currentUser.role !== 'sender') {
-            window.location.href = 'index.html';
-        }
-
-        document.getElementById('currentUser').textContent = currentUser.username;
-
-        function sendMessage() {
-            const receiverId = document.getElementById('receiverId').value.trim().toUpperCase();
-            const messageText = document.getElementById('messageText').value.trim();
-            const priority = document.getElementById('messagePriority').value;
-
-            if (!receiverId || !messageText) {
-                alert('Please fill in all fields');
-                return;
+        class SenderApp {
+            constructor() {
+                this.currentUser = null;
+                this.selectedPriority = 'low';
+                this.storage = new PagerStorage();
+                this.init();
             }
 
-            const message = {
-                id: Date.now(),
-                sender: currentUser.username,
-                receiver: receiverId,
-                message: messageText,
-                priority: priority,
-                timestamp: new Date().toLocaleString(),
-                read: false,
-                readTimestamp: null
-            };
-
-            // Save message
-            const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-            messages.push(message);
-            localStorage.setItem('pagerMessages', JSON.stringify(messages));
-
-            // Log to admin
-            const adminLogs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
-            adminLogs.push({ ...message, action: 'sent' });
-            localStorage.setItem('adminLogs', JSON.stringify(adminLogs));
-
-            showNotification(`Message sent to ${receiverId}!`);
-            document.getElementById('receiverId').value = '';
-            document.getElementById('messageText').value = '';
-            updateSentMessages();
-        }
-
-        function updateSentMessages() {
-            const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-            const userMessages = messages.filter(msg => msg.sender === currentUser.username).slice(-5).reverse();
-            const container = document.getElementById('sentMessages');
-            
-            if (userMessages.length === 0) {
-                container.innerHTML = '<p>No messages sent yet.</p>';
-                return;
+            init() {
+                this.checkAuthentication();
+                this.setupEventListeners();
+                this.loadRecentMessages();
+                this.updateConnectionStatus();
+                this.startAutoRefresh();
             }
 
-            container.innerHTML = userMessages.map(msg => `
-                <div class="message-item">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <strong>To: ${msg.receiver}</strong>
-                        <span style="font-size: 0.8rem; opacity: 0.7;">${msg.timestamp}</span>
+            checkAuthentication() {
+                const userData = sessionStorage.getItem('currentUser');
+                if (!userData) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                this.currentUser = JSON.parse(userData);
+                document.getElementById('username').textContent = this.currentUser.username;
+                
+                if (this.currentUser.role !== 'sender') {
+                    showNotification('Access denied. Sender role required.', 'error');
+                    setTimeout(() => window.location.href = 'index.html', 2000);
+                }
+            }
+
+            setupEventListeners() {
+                // Priority selection
+                document.querySelectorAll('.priority-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        document.querySelectorAll('.priority-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+                        e.currentTarget.classList.add('active');
+                        this.selectedPriority = e.currentTarget.dataset.priority;
+                    });
+                });
+
+                // Message form
+                document.getElementById('messageForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.sendMessage();
+                });
+
+                // Character count
+                document.getElementById('messageContent').addEventListener('input', (e) => {
+                    document.getElementById('charCount').textContent = e.target.value.length;
+                });
+
+                // Refresh button
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    this.loadRecentMessages();
+                    showNotification('Messages refreshed');
+                });
+
+                // Storage updates from other tabs
+                window.addEventListener('pagerStorageUpdate', () => {
+                    this.loadRecentMessages();
+                });
+
+                // Network status
+                window.addEventListener('online', () => this.updateConnectionStatus());
+                window.addEventListener('offline', () => this.updateConnectionStatus());
+            }
+
+            async sendMessage() {
+                const receiverId = document.getElementById('receiverId').value.trim();
+                const messageContent = document.getElementById('messageContent').value.trim();
+
+                if (!receiverId || !messageContent) {
+                    showNotification('Please fill in all fields', 'error');
+                    return;
+                }
+
+                // Validate receiver exists
+                const data = this.storage.getLocalData();
+                const receiver = data.users.find(u => u.id === receiverId && u.role === 'receiver');
+                if (!receiver) {
+                    showNotification('Invalid Receiver ID', 'error');
+                    return;
+                }
+
+                const message = {
+                    id: this.storage.generateId(),
+                    sender: this.currentUser.username,
+                    senderId: this.currentUser.id,
+                    receiverId: receiverId,
+                    receiver: receiver.username,
+                    content: messageContent,
+                    priority: this.selectedPriority,
+                    timestamp: Date.now(),
+                    status: 'sent'
+                };
+
+                try {
+                    await this.storage.sendMessage(message);
+                    showNotification(`Message sent to ${receiverId}`, 'success');
+                    
+                    // Clear form
+                    document.getElementById('messageForm').reset();
+                    document.getElementById('charCount').textContent = '0';
+                    
+                    // Reload messages
+                    this.loadRecentMessages();
+                    
+                } catch (error) {
+                    showNotification('Failed to send message', 'error');
+                    console.error('Send message error:', error);
+                }
+            }
+
+            loadRecentMessages() {
+                const data = this.storage.getLocalData();
+                const userMessages = data.messages
+                    .filter(msg => msg.sender === this.currentUser.username)
+                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .slice(0, 10); // Last 10 messages
+
+                const messagesList = document.getElementById('messagesList');
+                
+                if (userMessages.length === 0) {
+                    messagesList.innerHTML = `
+                        <div class="empty-state" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.3; margin-bottom: 15px;"></i>
+                            <p>No messages sent yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                messagesList.innerHTML = userMessages.map(msg => `
+                    <div class="message-item ${msg.priority}">
+                        <div class="message-header">
+                            <span class="receiver-id">To: ${msg.receiverId}</span>
+                            <span class="priority-badge" style="background: ${this.getPriorityColor(msg.priority)};">
+                                ${msg.priority.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="message-content">${this.escapeHtml(msg.content)}</div>
+                        <div class="message-footer">
+                            <span>${new Date(msg.timestamp).toLocaleString()}</span>
+                            <span class="status-badge status-${msg.status}">
+                                ${msg.status.toUpperCase()}
+                            </span>
+                        </div>
                     </div>
-                    <div>${msg.message}</div>
-                    <div style="margin-top: 8px;">
-                        <span style="background: ${getPriorityColor(msg.priority)}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">
-                            ${msg.priority.toUpperCase()}
-                        </span>
-                        <span style="float: right; font-size: 0.8rem; opacity: 0.7;">
-                            ${msg.read ? '✅ Read' : '⏳ Unread'}
-                        </span>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
+
+            getPriorityColor(priority) {
+                const colors = {
+                    high: 'var(--priority-high)',
+                    medium: 'var(--priority-medium)',
+                    low: 'var(--priority-low)'
+                };
+                return colors[priority] || colors.low;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            updateConnectionStatus() {
+                const indicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                
+                if (navigator.onLine) {
+                    indicator.className = 'status-indicator status-connected';
+                    statusText.textContent = 'Connected to network';
+                } else {
+                    indicator.className = 'status-indicator status-disconnected';
+                    statusText.textContent = 'Offline mode - local data only';
+                }
+            }
+
+            startAutoRefresh() {
+                // Refresh messages every 10 seconds
+                setInterval(() => {
+                    this.loadRecentMessages();
+                }, 10000);
+            }
         }
 
-        function getPriorityColor(priority) {
-            return { high: '#e52e71', medium: '#ff8a00', low: '#1a2a6c' }[priority] || '#1a2a6c';
-        }
-
-        function showNotification(message) {
+        // Show notification function
+        function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
-            notification.classList.add('show');
-            setTimeout(() => notification.classList.remove('show'), 3000);
+            notification.className = 'notification';
+            notification.classList.add(type, 'show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
         }
 
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = 'index.html';
+        // Include the PagerStorage class from index.html
+        class PagerStorage {
+            constructor() {
+                this.STORAGE_KEY = 'securePagerData';
+                this.SYNC_INTERVAL = 2000;
+                this.lastSync = 0;
+                this.isOnline = navigator.onLine;
+            }
+
+            getLocalData() {
+                const data = localStorage.getItem(this.STORAGE_KEY);
+                return data ? JSON.parse(data) : this.getDefaultData();
+            }
+
+            getDefaultData() {
+                return {
+                    users: [],
+                    messages: [],
+                    logs: [],
+                    system: { lastUpdate: Date.now(), activeSessions: [] }
+                };
+            }
+
+            generateId() {
+                return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            }
+
+            async sendMessage(message) {
+                const data = this.getLocalData();
+                data.messages.push(message);
+                data.logs.push({
+                    timestamp: Date.now(),
+                    user: message.sender,
+                    action: 'send_message',
+                    details: `Message sent to ${message.receiverId}`,
+                    messageId: message.id
+                });
+                
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+                
+                // Simulate cloud sync
+                if (this.isOnline) {
+                    const cloudKey = 'securePagerCloud';
+                    localStorage.setItem(cloudKey, JSON.stringify(data));
+                }
+                
+                this.triggerStorageEvent();
+                return message;
+            }
+
+            triggerStorageEvent() {
+                window.dispatchEvent(new Event('pagerStorageUpdate'));
+            }
         }
 
-        updateSentMessages();
+        // Initialize the sender application
+        const senderApp = new SenderApp();
     </script>
 </body>
 </html>
