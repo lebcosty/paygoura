@@ -293,6 +293,7 @@
                 this.currentUser = null;
                 this.messages = [];
                 this.lastMessageCount = 0;
+                this.storage = new CloudStorage();
                 this.init();
             }
 
@@ -327,30 +328,29 @@
                 });
 
                 document.getElementById('filterSelect').addEventListener('change', () => {
-                    this.loadMessages();
-                });
-
-                // Listen for storage changes (other tabs)
-                window.addEventListener('storage', () => {
-                    this.loadMessages();
+                    this.applyFilter();
                 });
             }
 
-            loadMessages() {
-                const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-                const myMessages = messages
-                    .filter(m => m.receiverId === this.currentUser.id)
-                    .sort((a, b) => b.timestamp - a.timestamp);
+            async loadMessages() {
+                try {
+                    const data = await this.storage.getData();
+                    const myMessages = data.messages
+                        .filter(m => m.receiverId === this.currentUser.id)
+                        .sort((a, b) => b.timestamp - a.timestamp);
 
-                this.messages = myMessages;
-                this.applyFilter();
+                    this.messages = myMessages;
+                    this.applyFilter();
 
-                // Check for new messages
-                if (myMessages.length > this.lastMessageCount && this.lastMessageCount > 0) {
-                    const newCount = myMessages.length - this.lastMessageCount;
-                    this.showNotification(`${newCount} new message${newCount > 1 ? 's' : ''}!`);
+                    // Check for new messages
+                    if (myMessages.length > this.lastMessageCount && this.lastMessageCount > 0) {
+                        const newCount = myMessages.length - this.lastMessageCount;
+                        this.showNotification(`${newCount} new message${newCount > 1 ? 's' : ''}!`);
+                    }
+                    this.lastMessageCount = myMessages.length;
+                } catch (error) {
+                    console.error('Failed to load messages:', error);
                 }
-                this.lastMessageCount = myMessages.length;
             }
 
             applyFilter() {
@@ -414,16 +414,22 @@
                 `).join('');
             }
 
-            markAsRead(messageId) {
-                const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-                const message = messages.find(m => m.id === messageId);
-                
-                if (message && !message.read) {
-                    message.read = true;
-                    message.readAt = Date.now();
-                    localStorage.setItem('pagerMessages', JSON.stringify(messages));
-                    this.loadMessages();
-                    this.showNotification('Marked as read');
+            async markAsRead(messageId) {
+                try {
+                    const data = await this.storage.getData();
+                    const message = data.messages.find(m => m.id === messageId);
+                    
+                    if (message && !message.read) {
+                        message.read = true;
+                        message.readAt = Date.now();
+                        data.lastUpdate = Date.now();
+                        
+                        await this.storage.saveData(data);
+                        this.loadMessages();
+                        this.showNotification('Marked as read');
+                    }
+                } catch (error) {
+                    console.error('Failed to mark as read:', error);
                 }
             }
 
@@ -458,6 +464,82 @@
                 setTimeout(() => {
                     notification.classList.remove('show');
                 }, 3000);
+            }
+        }
+
+        // Cloud Storage Class (same as other pages)
+        class CloudStorage {
+            constructor() {
+                this.API_KEY = '$2a$10$/8bOzUCg/s1ybR/cGuRooOKeGep3PsFx6Ocq2axmulCMx9FdxP4L2';
+                this.BIN_ID = '68f91f62d0ea881f40b3d484';
+                this.BASE_URL = 'https://api.jsonbin.io/v3/b';
+                this.isOnline = navigator.onLine;
+            }
+
+            async getData() {
+                if (!this.isOnline) {
+                    return this.getLocalData();
+                }
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}/latest`, {
+                        headers: { 'X-Master-Key': this.API_KEY }
+                    });
+                    
+                    if (!response.ok) throw new Error('API request failed');
+                    
+                    const data = await response.json();
+                    const cloudData = data.record || this.getDefaultData();
+                    
+                    this.saveLocalData(cloudData);
+                    return cloudData;
+                } catch (error) {
+                    return this.getLocalData();
+                }
+            }
+
+            async saveData(data) {
+                this.saveLocalData(data);
+
+                if (!this.isOnline) {
+                    return false;
+                }
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': this.API_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    return response.ok;
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            getLocalData() {
+                try {
+                    const data = localStorage.getItem('pagerData');
+                    return data ? JSON.parse(data) : this.getDefaultData();
+                } catch (error) {
+                    return this.getDefaultData();
+                }
+            }
+
+            saveLocalData(data) {
+                localStorage.setItem('pagerData', JSON.stringify(data));
+            }
+
+            getDefaultData() {
+                return {
+                    users: [],
+                    messages: [],
+                    lastUpdate: Date.now()
+                };
             }
         }
 
