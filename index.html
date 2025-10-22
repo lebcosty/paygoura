@@ -60,6 +60,38 @@
             color: transparent;
         }
 
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-connected {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status-disconnected {
+            background: #e52e71;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -153,7 +185,12 @@
         <div class="glass-card">
             <div class="logo">
                 <h1><i class="fas fa-broadcast-tower"></i> SecurePager Pro</h1>
-                <p>Enterprise Communication System</p>
+                <p>Cross-Browser Messaging</p>
+            </div>
+            
+            <div class="connection-status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="statusText">Connecting to cloud...</span>
             </div>
             
             <form id="loginForm">
@@ -186,56 +223,120 @@
     <div class="notification" id="notification"></div>
 
     <script>
-        // Simple Storage Manager
-        class PagerStorage {
+        // Cloud Storage Manager with Full API Sync
+        class CloudStorage {
             constructor() {
-                this.initStorage();
+                this.API_KEY = '$2a$10$/8bOzUCg/s1ybR/cGuRooOKeGep3PsFx6Ocq2axmulCMx9FdxP4L2';
+                this.BIN_ID = '68f91f62d0ea881f40b3d484';
+                this.BASE_URL = 'https://api.jsonbin.io/v3/b';
+                this.isOnline = navigator.onLine;
+                this.setupNetworkListeners();
             }
 
-            initStorage() {
-                if (!localStorage.getItem('pagerUsers')) {
-                    const users = [
+            async getData() {
+                if (!this.isOnline) {
+                    return this.getLocalData();
+                }
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}/latest`, {
+                        headers: { 'X-Master-Key': this.API_KEY }
+                    });
+                    
+                    if (!response.ok) throw new Error('API request failed');
+                    
+                    const data = await response.json();
+                    const cloudData = data.record || this.getDefaultData();
+                    
+                    // Save to local storage as backup
+                    this.saveLocalData(cloudData);
+                    
+                    return cloudData;
+                } catch (error) {
+                    console.error('Cloud fetch failed, using local data:', error);
+                    return this.getLocalData();
+                }
+            }
+
+            async saveData(data) {
+                // Always save locally first
+                this.saveLocalData(data);
+
+                if (!this.isOnline) {
+                    return false;
+                }
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': this.API_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    return response.ok;
+                } catch (error) {
+                    console.error('Cloud save failed:', error);
+                    return false;
+                }
+            }
+
+            getLocalData() {
+                try {
+                    const data = localStorage.getItem('pagerData');
+                    return data ? JSON.parse(data) : this.getDefaultData();
+                } catch (error) {
+                    return this.getDefaultData();
+                }
+            }
+
+            saveLocalData(data) {
+                localStorage.setItem('pagerData', JSON.stringify(data));
+            }
+
+            getDefaultData() {
+                return {
+                    users: [
                         { username: 'admin', password: 'admin123', role: 'admin', id: 'ADMIN001' },
                         { username: 'sender1', password: 'sender123', role: 'sender', id: 'SEN001' },
                         { username: 'sender2', password: 'sender123', role: 'sender', id: 'SEN002' },
                         { username: 'receiver1', password: 'receiver123', role: 'receiver', id: 'REC001' },
                         { username: 'receiver2', password: 'receiver123', role: 'receiver', id: 'REC002' }
-                    ];
-                    localStorage.setItem('pagerUsers', JSON.stringify(users));
-                    localStorage.setItem('pagerMessages', JSON.stringify([]));
-                }
+                    ],
+                    messages: [],
+                    lastUpdate: Date.now()
+                };
             }
 
-            getUsers() {
-                return JSON.parse(localStorage.getItem('pagerUsers') || '[]');
+            setupNetworkListeners() {
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.updateConnectionStatus(true);
+                });
+
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    this.updateConnectionStatus(false);
+                });
             }
 
-            getMessages() {
-                return JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-            }
-
-            saveMessage(message) {
-                const messages = this.getMessages();
-                message.id = 'msg_' + Date.now();
-                message.timestamp = Date.now();
-                message.status = 'sent';
-                messages.push(message);
-                localStorage.setItem('pagerMessages', JSON.stringify(messages));
-                return message;
-            }
-
-            markAsRead(messageId) {
-                const messages = this.getMessages();
-                const message = messages.find(m => m.id === messageId);
-                if (message) {
-                    message.read = true;
-                    message.readAt = Date.now();
-                    localStorage.setItem('pagerMessages', JSON.stringify(messages));
+            updateConnectionStatus(online) {
+                const indicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                
+                if (online) {
+                    indicator.className = 'status-indicator status-connected';
+                    statusText.textContent = 'Connected to cloud';
+                } else {
+                    indicator.className = 'status-indicator status-disconnected';
+                    statusText.textContent = 'Offline mode';
                 }
             }
         }
 
-        const storage = new PagerStorage();
+        const storage = new CloudStorage();
 
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
@@ -248,7 +349,7 @@
             }, 3000);
         }
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value.trim();
@@ -263,35 +364,37 @@
             loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
             loginBtn.disabled = true;
 
-            const users = storage.getUsers();
-            const user = users.find(u => u.username === username && u.password === password);
-            
-            if (user) {
-                // Store user session
-                sessionStorage.setItem('currentUser', JSON.stringify(user));
-                sessionStorage.setItem('loginTime', Date.now().toString());
+            try {
+                // Get fresh data from cloud
+                const data = await storage.getData();
                 
-                showNotification(`Welcome, ${user.username}!`);
+                const user = data.users.find(u => u.username === username && u.password === password);
                 
-                setTimeout(() => {
-                    if (user.role === 'admin') window.location.href = 'admin.html';
-                    else if (user.role === 'sender') window.location.href = 'sender.html';
-                    else if (user.role === 'receiver') window.location.href = 'receiver.html';
-                }, 1000);
-            } else {
-                showNotification('Invalid username or password', 'error');
+                if (user) {
+                    // Store user session
+                    sessionStorage.setItem('currentUser', JSON.stringify(user));
+                    
+                    showNotification(`Welcome, ${user.username}!`);
+                    
+                    setTimeout(() => {
+                        if (user.role === 'admin') window.location.href = 'admin.html';
+                        else if (user.role === 'sender') window.location.href = 'sender.html';
+                        else if (user.role === 'receiver') window.location.href = 'receiver.html';
+                    }, 1000);
+                } else {
+                    showNotification('Invalid username or password', 'error');
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                    loginBtn.disabled = false;
+                }
+            } catch (error) {
+                showNotification('Login failed. Try again.', 'error');
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
                 loginBtn.disabled = false;
             }
         });
 
-        // Auto-fill demo accounts for testing
-        document.getElementById('username').addEventListener('focus', function() {
-            if (!this.value) {
-                this.value = 'admin';
-                document.getElementById('password').value = 'admin123';
-            }
-        });
+        // Initialize connection status
+        storage.updateConnectionStatus(navigator.onLine);
     </script>
 </body>
 </html>
