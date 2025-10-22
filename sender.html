@@ -5,181 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Pager - Sender</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #fdbb2d);
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-        }
-        
-        .user-info {
-            text-align: right;
-        }
-        
-        .card {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #ff8a00, #e52e71);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .btn-block {
-            width: 100%;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            transform: translateX(150%);
-            transition: transform 0.4s ease;
-            z-index: 1000;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .sent-messages {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .message-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid #ff8a00;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #1a2a6c, #fdbb2d); color: white; min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 15px; }
+        .card { background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; }
+        input, textarea, select { width: 100%; padding: 12px 15px; border-radius: 8px; border: none; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); }
+        textarea { min-height: 120px; resize: vertical; }
+        .btn { background: linear-gradient(135deg, #ff8a00, #e52e71); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-block { width: 100%; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); }
+        .notification { position: fixed; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); color: white; padding: 15px 25px; border-radius: 8px; transform: translateX(150%); transition: transform 0.4s ease; z-index: 1000; }
+        .notification.show { transform: translateX(0); }
+        .sent-messages { max-height: 400px; overflow-y: auto; }
+        .message-item { background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff8a00; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-paper-plane"></i> Sender Dashboard</h1>
+            <h1>📤 Sender Dashboard</h1>
             <div class="user-info">
                 <div>Welcome, <strong id="currentUser"></strong></div>
-                <button class="btn" onclick="logout()" style="margin-top: 10px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <button class="btn" onclick="logout()" style="margin-top: 10px;">🚪 Logout</button>
             </div>
         </header>
         
         <div class="card">
-            <h2 style="margin-bottom: 20px;"><i class="fas fa-message"></i> Send Message</h2>
-            
+            <h2 style="margin-bottom: 20px;">💬 Send Message</h2>
             <div class="form-group">
                 <label for="receiverId">Receiver ID</label>
-                <input type="text" id="receiverId" placeholder="Enter receiver ID">
+                <input type="text" id="receiverId" placeholder="Enter receiver ID (REC001, REC002)">
             </div>
-            
             <div class="form-group">
                 <label for="messagePriority">Priority</label>
                 <select id="messagePriority">
-                    <option value="low">Low Priority</option>
-                    <option value="medium" selected>Medium Priority</option>
-                    <option value="high">High Priority</option>
+                    <option value="low">🟢 Low Priority</option>
+                    <option value="medium" selected>🟡 Medium Priority</option>
+                    <option value="high">🔴 High Priority</option>
                 </select>
             </div>
-            
             <div class="form-group">
                 <label for="messageText">Message</label>
                 <textarea id="messageText" placeholder="Type your message here..."></textarea>
             </div>
-            
-            <button class="btn btn-block" onclick="sendMessage()">
-                <i class="fas fa-paper-plane"></i> Send Message
-            </button>
+            <button class="btn btn-block" onclick="sendMessage()">📤 Send Message</button>
         </div>
         
         <div class="card">
-            <h2 style="margin-bottom: 20px;"><i class="fas fa-history"></i> Recently Sent</h2>
-            <div class="sent-messages" id="sentMessages">
-                <!-- Messages will appear here -->
-            </div>
+            <h2 style="margin-bottom: 20px;">📋 Recently Sent</h2>
+            <div class="sent-messages" id="sentMessages"></div>
         </div>
     </div>
 
-    <div class="notification" id="notification">
-        <i class="fas fa-check-circle"></i> Message sent successfully!
-    </div>
+    <div class="notification" id="notification">✅ Message sent successfully!</div>
 
     <script>
-        // Check authentication
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser || currentUser.role !== 'sender') {
             window.location.href = 'index.html';
@@ -188,7 +72,7 @@
         document.getElementById('currentUser').textContent = currentUser.username;
 
         function sendMessage() {
-            const receiverId = document.getElementById('receiverId').value.trim();
+            const receiverId = document.getElementById('receiverId').value.trim().toUpperCase();
             const messageText = document.getElementById('messageText').value.trim();
             const priority = document.getElementById('messagePriority').value;
 
@@ -197,7 +81,6 @@
                 return;
             }
 
-            // Create message object
             const message = {
                 id: Date.now(),
                 sender: currentUser.username,
@@ -209,23 +92,17 @@
                 readTimestamp: null
             };
 
-            // Save to messages storage
+            // Save message
             const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
             messages.push(message);
             localStorage.setItem('pagerMessages', JSON.stringify(messages));
 
-            // Save to admin logs
+            // Log to admin
             const adminLogs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
-            adminLogs.push({
-                ...message,
-                action: 'sent'
-            });
+            adminLogs.push({ ...message, action: 'sent' });
             localStorage.setItem('adminLogs', JSON.stringify(adminLogs));
 
-            // Show notification
             showNotification(`Message sent to ${receiverId}!`);
-
-            // Clear form and update sent messages
             document.getElementById('receiverId').value = '';
             document.getElementById('messageText').value = '';
             updateSentMessages();
@@ -233,11 +110,7 @@
 
         function updateSentMessages() {
             const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-            const userMessages = messages
-                .filter(msg => msg.sender === currentUser.username)
-                .slice(-5) // Show last 5 messages
-                .reverse();
-
+            const userMessages = messages.filter(msg => msg.sender === currentUser.username).slice(-5).reverse();
             const container = document.getElementById('sentMessages');
             
             if (userMessages.length === 0) {
@@ -253,11 +126,11 @@
                     </div>
                     <div>${msg.message}</div>
                     <div style="margin-top: 8px;">
-                        <span class="priority-tag" style="background: ${getPriorityColor(msg.priority)}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">
+                        <span style="background: ${getPriorityColor(msg.priority)}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">
                             ${msg.priority.toUpperCase()}
                         </span>
                         <span style="float: right; font-size: 0.8rem; opacity: 0.7;">
-                            ${msg.read ? '✓ Read' : 'Unread'}
+                            ${msg.read ? '✅ Read' : '⏳ Unread'}
                         </span>
                     </div>
                 </div>
@@ -265,17 +138,12 @@
         }
 
         function getPriorityColor(priority) {
-            const colors = {
-                high: '#e52e71',
-                medium: '#ff8a00',
-                low: '#1a2a6c'
-            };
-            return colors[priority] || '#1a2a6c';
+            return { high: '#e52e71', medium: '#ff8a00', low: '#1a2a6c' }[priority] || '#1a2a6c';
         }
 
         function showNotification(message) {
             const notification = document.getElementById('notification');
-            notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            notification.textContent = message;
             notification.classList.add('show');
             setTimeout(() => notification.classList.remove('show'), 3000);
         }
@@ -285,7 +153,6 @@
             window.location.href = 'index.html';
         }
 
-        // Initialize
         updateSentMessages();
     </script>
 </body>
