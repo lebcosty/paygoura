@@ -5,166 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Pager - Receiver</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #b21f1f, #1a2a6c);
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-        }
-        
-        .user-info {
-            text-align: right;
-        }
-        
-        .card {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #ff8a00, #e52e71);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #00b09b, #96c93d);
-        }
-        
-        .messages-container {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        
-        .message {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-left: 4px solid #ff8a00;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .message:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        
-        .message.unread {
-            background: rgba(255, 255, 255, 0.2);
-            border-left-color: #e52e71;
-        }
-        
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        
-        .sender {
-            font-weight: 600;
-            color: #ff8a00;
-        }
-        
-        .timestamp {
-            font-size: 0.8rem;
-            opacity: 0.7;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            transform: translateX(150%);
-            transition: transform 0.4s ease;
-            z-index: 1000;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            opacity: 0.7;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #b21f1f, #1a2a6c); color: white; min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 15px; }
+        .card { background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn { background: linear-gradient(135deg, #ff8a00, #e52e71); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-success { background: linear-gradient(135deg, #00b09b, #96c93d); }
+        .messages-container { max-height: 500px; overflow-y: auto; }
+        .message { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #ff8a00; cursor: pointer; transition: all 0.3s ease; }
+        .message:hover { background: rgba(255, 255, 255, 0.15); }
+        .message.unread { background: rgba(255, 255, 255, 0.2); border-left-color: #e52e71; }
+        .message-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .notification { position: fixed; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); color: white; padding: 15px 25px; border-radius: 8px; transform: translateX(150%); transition: transform 0.4s ease; z-index: 1000; }
+        .notification.show { transform: translateX(0); }
+        .empty-state { text-align: center; padding: 40px; opacity: 0.7; }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-inbox"></i> Receiver Dashboard</h1>
+            <h1>📥 Receiver Dashboard</h1>
             <div class="user-info">
                 <div>Welcome, <strong id="currentUser"></strong></div>
                 <div>ID: <strong id="receiverId"></strong></div>
-                <button class="btn" onclick="logout()" style="margin-top: 10px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <button class="btn" onclick="logout()" style="margin-top: 10px;">🚪 Logout</button>
             </div>
         </header>
         
         <div class="card">
-            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
-                <h2><i class="fas fa-messages"></i> Messages</h2>
-                <button class="btn btn-success" id="toggleListen">
-                    <i class="fas fa-play"></i> Start Listening
-                </button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>📨 Messages</h2>
+                <button class="btn btn-success" id="toggleListen">▶️ Start Listening</button>
             </div>
-            
             <div class="messages-container" id="messagesContainer">
                 <div class="empty-state">
-                    <i class="fas fa-inbox fa-3x" style="margin-bottom: 15px;"></i>
-                    <p>No messages yet. Start listening to receive messages.</p>
+                    <p>📭 No messages yet. Start listening to receive messages.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="notification" id="notification">
-        <i class="fas fa-bell"></i> New message received!
-    </div>
+    <div class="notification" id="notification">🔔 New message received!</div>
 
     <script>
-        // Check authentication
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser || currentUser.role !== 'receiver') {
             window.location.href = 'index.html';
@@ -188,24 +72,23 @@
 
         function startListening() {
             isListening = true;
-            document.getElementById('toggleListen').innerHTML = '<i class="fas fa-stop"></i> Stop Listening';
+            document.getElementById('toggleListen').innerHTML = '⏹️ Stop Listening';
             document.getElementById('toggleListen').classList.remove('btn-success');
-            
             checkInterval = setInterval(checkForMessages, 2000);
-            checkForMessages(); // Check immediately
+            checkForMessages();
         }
 
         function stopListening() {
             isListening = false;
             clearInterval(checkInterval);
-            document.getElementById('toggleListen').innerHTML = '<i class="fas fa-play"></i> Start Listening';
+            document.getElementById('toggleListen').innerHTML = '▶️ Start Listening';
             document.getElementById('toggleListen').classList.add('btn-success');
         }
 
         function checkForMessages() {
             const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
             const myMessages = messages.filter(msg => 
-                msg.receiver.toLowerCase() === currentUser.receiverId.toLowerCase()
+                msg.receiver.toUpperCase() === currentUser.receiverId.toUpperCase()
             );
 
             displayMessages(myMessages);
@@ -214,11 +97,7 @@
             const newMessages = myMessages.filter(msg => !msg.read);
             if (newMessages.length > 0 && isListening) {
                 showNotification(`${newMessages.length} new message(s)!`);
-                
-                // Auto-mark as read after notification
-                setTimeout(() => {
-                    newMessages.forEach(msg => markAsRead(msg.id));
-                }, 1000);
+                newMessages.forEach(msg => markAsRead(msg.id));
             }
         }
 
@@ -226,23 +105,16 @@
             const container = document.getElementById('messagesContainer');
             
             if (messages.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox fa-3x" style="margin-bottom: 15px;"></i>
-                        <p>No messages yet. Start listening to receive messages.</p>
-                    </div>
-                `;
+                container.innerHTML = '<div class="empty-state"><p>📭 No messages yet. Start listening to receive messages.</p></div>';
                 return;
             }
 
-            // Sort by timestamp (newest first)
             messages.sort((a, b) => b.id - a.id);
-
             container.innerHTML = messages.map(msg => `
                 <div class="message ${msg.read ? '' : 'unread'}" onclick="markAsRead(${msg.id})">
                     <div class="message-header">
-                        <span class="sender">From: ${msg.sender}</span>
-                        <span class="timestamp">${msg.timestamp}</span>
+                        <span style="font-weight: 600; color: #ff8a00;">From: ${msg.sender}</span>
+                        <span style="font-size: 0.8rem; opacity: 0.7;">${msg.timestamp}</span>
                     </div>
                     <div style="margin-bottom: 10px;">${msg.message}</div>
                     <div class="message-header">
@@ -250,7 +122,7 @@
                             ${msg.priority.toUpperCase()}
                         </span>
                         <span style="font-size: 0.8rem; opacity: 0.7;">
-                            ${msg.read ? `Read at ${msg.readTimestamp}` : 'Click to mark as read'}
+                            ${msg.read ? `✅ Read at ${msg.readTimestamp}` : '👆 Click to mark as read'}
                         </span>
                     </div>
                 </div>
@@ -266,30 +138,21 @@
                 messages[messageIndex].readTimestamp = new Date().toLocaleString();
                 localStorage.setItem('pagerMessages', JSON.stringify(messages));
                 
-                // Update admin logs
                 const adminLogs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
-                adminLogs.push({
-                    ...messages[messageIndex],
-                    action: 'read'
-                });
+                adminLogs.push({ ...messages[messageIndex], action: 'read' });
                 localStorage.setItem('adminLogs', JSON.stringify(adminLogs));
                 
-                displayMessages(messages.filter(msg => msg.receiver === currentUser.receiverId));
+                checkForMessages();
             }
         }
 
         function getPriorityColor(priority) {
-            const colors = {
-                high: '#e52e71',
-                medium: '#ff8a00',
-                low: '#1a2a6c'
-            };
-            return colors[priority] || '#1a2a6c';
+            return { high: '#e52e71', medium: '#ff8a00', low: '#1a2a6c' }[priority] || '#1a2a6c';
         }
 
         function showNotification(message) {
             const notification = document.getElementById('notification');
-            notification.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+            notification.textContent = message;
             notification.classList.add('show');
             setTimeout(() => notification.classList.remove('show'), 3000);
         }
@@ -299,7 +162,6 @@
             window.location.href = 'index.html';
         }
 
-        // Auto-start listening
         window.addEventListener('load', () => {
             setTimeout(startListening, 1000);
         });
