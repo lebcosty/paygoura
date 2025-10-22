@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pager System - Receiver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #b21f1f, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #ff8a00, #e52e71);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+        }
+        
+        .messages-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .message {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ff8a00;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .sender {
+            font-weight: 600;
+            color: #ff8a00;
+        }
+        
+        .timestamp {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .message-content {
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .priority {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .priority-high {
+            border-left-color: #e52e71;
+        }
+        
+        .priority-medium {
+            border-left-color: #ff8a00;
+        }
+        
+        .priority-low {
+            border-left-color: #1a2a6c;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.7;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .message-header {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <a href="pager-system.html" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to System
+    </a>
+    
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-inbox"></i> Pager Receiver</h1>
+            <p>Receive and view your messages</p>
+        </header>
+        
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-user"></i> Receiver Setup</h2>
+            
+            <div class="form-group">
+                <label for="receiver-id">Your Receiver ID</label>
+                <input type="text" id="receiver-id" placeholder="Enter your unique receiver ID">
+            </div>
+            
+            <button class="btn btn-block" id="listen-btn">
+                <i class="fas fa-play"></i> Start Listening for Messages
+            </button>
+            
+            <button class="btn btn-block btn-success" id="stop-btn" style="margin-top: 10px; display: none;">
+                <i class="fas fa-stop"></i> Stop Listening
+            </button>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-messages"></i> Received Messages</h2>
+            
+            <div class="messages-container" id="messages-container">
+                <div class="empty-state">
+                    <i class="fas fa-inbox fa-3x" style="margin-bottom: 15px;"></i>
+                    <p>No messages yet. Start listening to receive messages.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-bell"></i> New message received!
+    </div>
+
+    <script>
+        let isListening = false;
+        let checkInterval;
+        let currentReceiverId = '';
+        
+        document.getElementById('listen-btn').addEventListener('click', startListening);
+        document.getElementById('stop-btn').addEventListener('click', stopListening);
+        
+        function startListening() {
+            const receiverId = document.getElementById('receiver-id').value.trim();
+            
+            if (!receiverId) {
+                alert('Please enter your receiver ID');
+                return;
+            }
+            
+            currentReceiverId = receiverId;
+            isListening = true;
+            
+            // Update UI
+            document.getElementById('listen-btn').style.display = 'none';
+            document.getElementById('stop-btn').style.display = 'block';
+            
+            // Check for messages immediately
+            checkForMessages();
+            
+            // Set up interval to check for new messages
+            checkInterval = setInterval(checkForMessages, 2000);
+            
+            // Save receiver ID to localStorage
+            localStorage.setItem('receiverId', receiverId);
+            
+            alert(`Now listening for messages with ID: ${receiverId}`);
+        }
+        
+        function stopListening() {
+            isListening = false;
+            clearInterval(checkInterval);
+            
+            // Update UI
+            document.getElementById('listen-btn').style.display = 'block';
+            document.getElementById('stop-btn').style.display = 'none';
+            
+            alert('Stopped listening for messages');
+        }
+        
+        function checkForMessages() {
+            if (!isListening) return;
+            
+            const allMessages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
+            const myMessages = allMessages.filter(msg => 
+                msg.receiver.toLowerCase() === currentReceiverId.toLowerCase()
+            );
+            
+            // Sort by timestamp (newest first)
+            myMessages.sort((a, b) => b.id - a.id);
+            
+            displayMessages(myMessages);
+            
+            // Check if we have new messages
+            const lastChecked = parseInt(localStorage.getItem('lastChecked') || '0');
+            const newMessages = myMessages.filter(msg => msg.id > lastChecked);
+            
+            if (newMessages.length > 0) {
+                // Show notification
+                const notification = document.getElementById('notification');
+                notification.innerHTML = `<i class="fas fa-bell"></i> ${newMessages.length} new message(s)!`;
+                notification.classList.add('show');
+                
+                // Hide notification after 3 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+                
+                // Update last checked time
+                localStorage.setItem('lastChecked', Date.now().toString());
+            }
+        }
+        
+        function displayMessages(messages) {
+            const container = document.getElementById('messages-container');
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox fa-3x" style="margin-bottom: 15px;"></i>
+                        <p>No messages yet. Start listening to receive messages.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = messages.map(msg => `
+                <div class="message priority-${msg.priority}">
+                    <div class="message-header">
+                        <span class="sender">From: ${msg.sender}</span>
+                        <span class="timestamp">${msg.timestamp}</span>
+                    </div>
+                    <div class="message-content">${msg.message}</div>
+                    <div class="message-header">
+                        <span class="priority">Priority: ${msg.priority}</span>
+                        <span>To: ${msg.receiver}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Load saved receiver ID on page load
+        window.addEventListener('load', () => {
+            const savedId = localStorage.getItem('receiverId');
+            if (savedId) {
+                document.getElementById('receiver-id').value = savedId;
+            }
+        });
+        
+        // Auto-start listening if receiver ID is already set
+        window.addEventListener('load', () => {
+            const savedId = localStorage.getItem('receiverId');
+            if (savedId && savedId.trim() !== '') {
+                // Small delay to ensure page is fully loaded
+                setTimeout(() => {
+                    document.getElementById('receiver-id').value = savedId;
+                    startListening();
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
