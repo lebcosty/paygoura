@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecurePager Pro | Multi-Device System</title>
+    <title>SecurePager Pro | Cross-Browser System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -177,6 +177,12 @@
             transform: translateY(0);
         }
 
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-secondary {
             background: rgba(255, 255, 255, 0.1);
             margin-top: 10px;
@@ -264,6 +270,20 @@
             opacity: 0.8;
         }
 
+        .api-status {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 0.8rem;
+        }
+
+        .api-status.connected {
+            background: rgba(40, 167, 69, 0.2);
+            color: var(--success);
+        }
+
         @media (max-width: 480px) {
             .glass-card {
                 padding: 20px;
@@ -280,12 +300,16 @@
         <div class="glass-card">
             <div class="logo">
                 <h1><i class="fas fa-broadcast-tower"></i> SecurePager Pro</h1>
-                <p>Multi-Device Enterprise Communication</p>
+                <p>Cross-Browser Enterprise Communication</p>
+            </div>
+            
+            <div class="api-status" id="apiStatus">
+                <i class="fas fa-cloud"></i> Cloud Database: Checking...
             </div>
             
             <div class="connection-status">
                 <div class="status-indicator" id="statusIndicator"></div>
-                <span id="statusText">Connecting to network...</span>
+                <span id="statusText">Initializing cloud connection...</span>
             </div>
             
             <form id="loginForm">
@@ -299,14 +323,13 @@
                     <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
                 </div>
                 
-                <button type="submit" class="btn">Login to Dashboard</button>
-                <button type="button" class="btn btn-secondary" id="offlineMode">
-                    <i class="fas fa-wifi-slash"></i> Use Offline Mode
+                <button type="submit" class="btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login to Dashboard
                 </button>
             </form>
             
             <div class="sync-info">
-                <i class="fas fa-sync-alt"></i> Real-time sync across all devices
+                <i class="fas fa-sync-alt"></i> Real-time sync across all browsers
             </div>
             
             <div class="demo-accounts">
@@ -345,93 +368,132 @@
         </div>
         
         <div class="footer">
-            <p>SecurePager Pro &copy; 2023 | Multi-Device Enterprise Solution</p>
+            <p>SecurePager Pro &copy; 2023 | Multi-Browser Enterprise Solution</p>
         </div>
     </div>
 
     <div class="notification" id="notification"></div>
 
     <script>
-        // Enhanced Storage Manager with Multi-Device Support
-        class PagerStorage {
+        // Cloud Database Manager with Your Actual Credentials
+        class CloudStorage {
             constructor() {
-                this.STORAGE_KEY = 'securePagerData';
-                this.SYNC_INTERVAL = 2000; // 2 seconds
-                this.lastSync = 0;
+                // ✅ YOUR ACTUAL CREDENTIALS
+                this.API_KEY = '$2a$10$/8bOzUCg/s1ybR/cGuRooOKeGep3PsFx6Ocq2axmulCMx9FdxP4L2';
+                this.BIN_ID = '68f91f62d0ea881f40b3d484';
+                this.BASE_URL = 'https://api.jsonbin.io/v3/b';
                 this.isOnline = navigator.onLine;
+                this.syncInterval = null;
                 this.setupNetworkListeners();
-                this.startSyncInterval();
-            }
-
-            setupNetworkListeners() {
-                window.addEventListener('online', () => {
-                    this.isOnline = true;
-                    this.updateConnectionStatus();
-                    this.syncData();
-                });
-
-                window.addEventListener('offline', () => {
-                    this.isOnline = false;
-                    this.updateConnectionStatus();
-                });
-            }
-
-            updateConnectionStatus() {
-                const indicator = document.getElementById('statusIndicator');
-                const statusText = document.getElementById('statusText');
                 
-                if (this.isOnline) {
-                    indicator.className = 'status-indicator status-connected';
-                    statusText.textContent = 'Connected to network';
-                } else {
-                    indicator.className = 'status-indicator status-disconnected';
-                    statusText.textContent = 'Offline mode - local data only';
+                console.log('🔑 Cloud Storage Initialized with:', {
+                    binId: this.BIN_ID,
+                    apiKey: this.API_KEY.substring(0, 10) + '...'
+                });
+            }
+
+            // Test connection to JSONBin.io
+            async testConnection() {
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
+                        headers: {
+                            'X-Master-Key': this.API_KEY
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        console.log('✅ JSONBin.io connection successful');
+                        return true;
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('❌ JSONBin.io connection failed:', error);
+                    return false;
                 }
             }
 
-            // Simulate cloud storage using localStorage (in real app, this would be API calls)
-            async syncData() {
-                if (!this.isOnline) return;
+            // READ - Get latest data from cloud
+            async getCloudData() {
+                if (!this.isOnline) {
+                    return this.getLocalData();
+                }
 
                 try {
-                    const localData = this.getLocalData();
-                    const cloudData = this.getCloudData();
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}/latest`, {
+                        headers: {
+                            'X-Master-Key': this.API_KEY
+                        }
+                    });
                     
-                    // Merge strategies - cloud wins in conflicts
-                    const mergedData = this.mergeData(localData, cloudData);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     
-                    this.saveToCloud(mergedData);
-                    this.saveLocally(mergedData);
-                    
-                    this.lastSync = Date.now();
-                    this.triggerStorageEvent();
-                    
+                    const data = await response.json();
+                    console.log('📥 Data fetched from cloud:', data.record.messages.length + ' messages');
+                    return data.record || this.getDefaultData();
                 } catch (error) {
-                    console.error('Sync error:', error);
+                    console.error('Cloud read error:', error);
+                    return this.getLocalData();
                 }
             }
 
+            // UPDATE - Save data to cloud
+            async saveToCloud(data) {
+                if (!this.isOnline) return false;
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': this.API_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    console.log('📤 Data saved to cloud:', data.messages.length + ' messages');
+                    return true;
+                } catch (error) {
+                    console.error('Cloud save error:', error);
+                    return false;
+                }
+            }
+
+            // Sync local and cloud data
+            async syncData() {
+                if (!this.isOnline) {
+                    return this.getLocalData();
+                }
+
+                try {
+                    const cloudData = await this.getCloudData();
+                    const localData = this.getLocalData();
+                    
+                    // Merge data (cloud takes precedence)
+                    const mergedData = this.mergeData(localData, cloudData);
+                    
+                    // Save merged data everywhere
+                    this.saveLocally(mergedData);
+                    await this.saveToCloud(mergedData);
+                    
+                    console.log('🔄 Data synced successfully');
+                    return mergedData;
+                } catch (error) {
+                    console.error('Sync error:', error);
+                    return this.getLocalData();
+                }
+            }
+
+            // Local storage methods
             getLocalData() {
-                const data = localStorage.getItem(this.STORAGE_KEY);
+                const data = localStorage.getItem('securePagerData');
                 return data ? JSON.parse(data) : this.getDefaultData();
-            }
-
-            getCloudData() {
-                // In a real application, this would fetch from a server
-                // For demo, we'll use a shared localStorage key to simulate cloud
-                const cloudKey = 'securePagerCloud';
-                const data = localStorage.getItem(cloudKey);
-                return data ? JSON.parse(data) : this.getDefaultData();
-            }
-
-            saveToCloud(data) {
-                // Simulate cloud save
-                const cloudKey = 'securePagerCloud';
-                localStorage.setItem(cloudKey, JSON.stringify(data));
             }
 
             saveLocally(data) {
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+                localStorage.setItem('securePagerData', JSON.stringify(data));
             }
 
             getDefaultData() {
@@ -445,60 +507,46 @@
                     ],
                     messages: [],
                     logs: [],
-                    system: {
-                        lastUpdate: Date.now(),
-                        activeSessions: []
+                    system: { 
+                        lastUpdate: Date.now(), 
+                        activeSessions: [],
+                        created: new Date().toISOString()
                     }
                 };
             }
 
             mergeData(local, cloud) {
-                // Simple merge - cloud data takes precedence for messages and logs
-                // Users are merged with conflict resolution
-                const merged = {
-                    users: this.mergeUsers(local.users, cloud.users),
-                    messages: cloud.messages.length > local.messages.length ? cloud.messages : local.messages,
-                    logs: cloud.logs.length > local.logs.length ? cloud.logs : local.logs,
-                    system: cloud.system || local.system
-                };
+                // Combine and remove duplicates - cloud data takes priority
+                const allMessages = [...local.messages, ...cloud.messages];
+                const messageMap = new Map();
+                allMessages.forEach(msg => messageMap.set(msg.id, msg));
                 
-                return merged;
-            }
-
-            mergeUsers(localUsers, cloudUsers) {
+                const allUsers = [...local.users, ...cloud.users];
                 const userMap = new Map();
+                allUsers.forEach(user => userMap.set(user.username, user));
                 
-                // Add all local users
-                localUsers.forEach(user => {
-                    userMap.set(user.username, { ...user, source: 'local' });
-                });
-                
-                // Merge with cloud users (cloud takes precedence)
-                cloudUsers.forEach(user => {
-                    const existing = userMap.get(user.username);
-                    if (!existing || user.lastActive > existing.lastActive) {
-                        userMap.set(user.username, { ...user, source: 'cloud' });
+                const allLogs = [...local.logs, ...cloud.logs];
+                const logMap = new Map();
+                allLogs.forEach(log => logMap.set(log.timestamp + log.user + log.action, log));
+
+                return {
+                    users: Array.from(userMap.values()),
+                    messages: Array.from(messageMap.values()).sort((a, b) => b.timestamp - a.timestamp),
+                    logs: Array.from(logMap.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
+                    system: { 
+                        ...local.system, 
+                        ...cloud.system, 
+                        lastUpdate: Date.now(),
+                        lastSync: new Date().toISOString()
                     }
-                });
-                
-                return Array.from(userMap.values());
+                };
             }
 
-            startSyncInterval() {
-                setInterval(() => {
-                    this.syncData();
-                }, this.SYNC_INTERVAL);
-            }
-
-            triggerStorageEvent() {
-                // Trigger custom event for other tabs/windows
-                window.dispatchEvent(new Event('pagerStorageUpdate'));
-            }
-
-            // Enhanced methods for cross-device communication
+            // Message operations
             async sendMessage(message) {
                 const data = this.getLocalData();
-                message.id = this.generateId();
+                
+                message.id = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 message.timestamp = Date.now();
                 message.status = 'sent';
                 
@@ -511,57 +559,92 @@
                     messageId: message.id
                 });
                 
+                data.system.lastUpdate = Date.now();
+                
                 this.saveLocally(data);
                 if (this.isOnline) {
-                    this.saveToCloud(data);
+                    await this.saveToCloud(data);
                 }
                 
-                this.triggerStorageEvent();
+                console.log('✉️ Message sent:', message);
                 return message;
             }
 
-            generateId() {
-                return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            }
-
-            // Get messages for a specific receiver
-            getMessagesForReceiver(receiverId) {
-                const data = this.getLocalData();
-                return data.messages.filter(msg => 
-                    msg.receiverId === receiverId || 
-                    (msg.receiver && msg.receiver.id === receiverId)
-                );
-            }
-
             // Mark message as read
-            markMessageAsRead(messageId) {
+            async markMessageAsRead(messageId, receiverId) {
                 const data = this.getLocalData();
                 const message = data.messages.find(msg => msg.id === messageId);
-                if (message) {
-                    message.status = 'read';
+                
+                if (message && !message.read) {
+                    message.read = true;
                     message.readAt = Date.now();
+                    message.status = 'read';
                     
                     data.logs.push({
                         timestamp: Date.now(),
-                        user: message.receiverId,
+                        user: receiverId,
                         action: 'read_message',
                         details: `Message read: ${messageId}`,
                         messageId: messageId
                     });
                     
+                    data.system.lastUpdate = Date.now();
+                    
                     this.saveLocally(data);
                     if (this.isOnline) {
-                        this.saveToCloud(data);
+                        await this.saveToCloud(data);
                     }
-                    this.triggerStorageEvent();
+                    
+                    console.log('📖 Message marked as read:', messageId);
+                }
+            }
+
+            setupNetworkListeners() {
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.updateConnectionStatus(true);
+                    this.syncData(); // Sync when coming online
+                });
+
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    this.updateConnectionStatus(false);
+                });
+            }
+
+            updateConnectionStatus(online) {
+                const indicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                
+                if (online) {
+                    indicator.className = 'status-indicator status-connected';
+                    statusText.textContent = 'Connected to cloud database';
+                } else {
+                    indicator.className = 'status-indicator status-disconnected';
+                    statusText.textContent = 'Offline mode - local data only';
+                }
+            }
+
+            startAutoSync() {
+                // Sync every 3 seconds when online
+                this.syncInterval = setInterval(async () => {
+                    if (this.isOnline) {
+                        await this.syncData();
+                        window.dispatchEvent(new CustomEvent('pagerDataUpdated'));
+                    }
+                }, 3000);
+            }
+
+            stopAutoSync() {
+                if (this.syncInterval) {
+                    clearInterval(this.syncInterval);
                 }
             }
         }
 
-        // Initialize the enhanced storage system
-        const pagerStorage = new PagerStorage();
+        // Initialize cloud storage
+        const cloudStorage = new CloudStorage();
 
-        // Show notification
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -570,79 +653,102 @@
             
             setTimeout(() => {
                 notification.classList.remove('show');
-            }, 3000);
+            }, 4000);
         }
 
-        // Handle login form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Update API status
+        async function updateApiStatus() {
+            const apiStatus = document.getElementById('apiStatus');
+            const isConnected = await cloudStorage.testConnection();
+            
+            if (isConnected) {
+                apiStatus.innerHTML = '<i class="fas fa-cloud"></i> Cloud Database: Connected';
+                apiStatus.className = 'api-status connected';
+            } else {
+                apiStatus.innerHTML = '<i class="fas fa-cloud-slash"></i> Cloud Database: Offline';
+                apiStatus.className = 'api-status';
+            }
+        }
+
+        // Handle login
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            handleLogin();
-        });
-
-        // Offline mode handler
-        document.getElementById('offlineMode').addEventListener('click', function() {
-            showNotification('Offline mode activated - using local data only', 'warning');
-            handleLogin(true);
-        });
-
-        function handleLogin(offline = false) {
+            
+            const loginBtn = document.getElementById('loginBtn');
+            const originalText = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+            loginBtn.disabled = true;
+            
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             
             if (!username || !password) {
                 showNotification('Please enter both username and password', 'error');
+                loginBtn.innerHTML = originalText;
+                loginBtn.disabled = false;
                 return;
             }
             
-            const data = pagerStorage.getLocalData();
-            const user = data.users.find(u => u.username === username && u.password === password);
-            
-            if (user) {
-                // Update user last active
-                user.lastActive = Date.now();
-                pagerStorage.saveLocally(data);
-                if (pagerStorage.isOnline && !offline) {
-                    pagerStorage.saveToCloud(data);
+            try {
+                // Test connection first
+                await updateApiStatus();
+                
+                // Sync data from cloud
+                const data = await cloudStorage.syncData();
+                
+                const user = data.users.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    // Update user activity
+                    user.lastActive = Date.now();
+                    cloudStorage.saveLocally(data);
+                    await cloudStorage.saveToCloud(data);
+                    
+                    // Store session
+                    sessionStorage.setItem('currentUser', JSON.stringify(user));
+                    sessionStorage.setItem('deviceId', `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+                    
+                    // Start auto-sync
+                    cloudStorage.startAutoSync();
+                    
+                    showNotification(`Welcome, ${user.username}! Syncing with cloud...`);
+                    
+                    setTimeout(() => {
+                        if (user.role === 'admin') window.location.href = 'admin.html';
+                        else if (user.role === 'sender') window.location.href = 'sender.html';
+                        else if (user.role === 'receiver') window.location.href = 'receiver.html';
+                    }, 2000);
+                } else {
+                    showNotification('Invalid username or password', 'error');
+                    loginBtn.innerHTML = originalText;
+                    loginBtn.disabled = false;
                 }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Login failed. Using offline mode.', 'warning');
+                loginBtn.innerHTML = originalText;
+                loginBtn.disabled = false;
                 
-                // Store user session
-                sessionStorage.setItem('currentUser', JSON.stringify(user));
-                sessionStorage.setItem('deviceId', `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
-                
-                // Add login log
-                data.logs.push({
-                    timestamp: new Date().toISOString(),
-                    user: user.username,
-                    role: user.role,
-                    action: 'login',
-                    details: `User logged into the system ${offline ? '(offline mode)' : ''}`,
-                    device: sessionStorage.getItem('deviceId')
-                });
-                
-                pagerStorage.saveLocally(data);
-                if (pagerStorage.isOnline && !offline) {
-                    pagerStorage.saveToCloud(data);
+                // Fallback to local authentication
+                const localData = cloudStorage.getLocalData();
+                const user = localData.users.find(u => u.username === username && u.password === password);
+                if (user) {
+                    sessionStorage.setItem('currentUser', JSON.stringify(user));
+                    setTimeout(() => {
+                        if (user.role === 'admin') window.location.href = 'admin.html';
+                        else if (user.role === 'sender') window.location.href = 'sender.html';
+                        else if (user.role === 'receiver') window.location.href = 'receiver.html';
+                    }, 1000);
                 }
-                
-                showNotification(`Welcome, ${user.username}! ${offline ? '(Offline Mode)' : ''}`);
-                
-                // Redirect based on role
-                setTimeout(() => {
-                    if (user.role === 'admin') {
-                        window.location.href = 'admin.html';
-                    } else if (user.role === 'sender') {
-                        window.location.href = 'sender.html';
-                    } else if (user.role === 'receiver') {
-                        window.location.href = 'receiver.html';
-                    }
-                }, 1500);
-            } else {
-                showNotification('Invalid username or password', 'error');
             }
-        }
+        });
 
-        // Initialize connection status
-        pagerStorage.updateConnectionStatus();
+        // Initialize
+        cloudStorage.updateConnectionStatus(navigator.onLine);
+        updateApiStatus();
+
+        // Make cloudStorage available globally for other pages
+        window.cloudStorage = cloudStorage;
     </script>
 </body>
 </html>
