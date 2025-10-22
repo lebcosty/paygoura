@@ -5,130 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Pager - Admin Panel</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #8E2DE2);
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #ff8a00;
-        }
-        
-        .card {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #ff8a00, #e52e71);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #e52e71, #b21f1f);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        th {
-            background: rgba(255, 255, 255, 0.1);
-            font-weight: 600;
-        }
-        
-        .status-read {
-            color: #00b09b;
-        }
-        
-        .status-unread {
-            color: #e52e71;
-        }
-        
-        .filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-select {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #1a2a6c, #8E2DE2); color: white; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 15px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #ff8a00; }
+        .card { background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn { background: linear-gradient(135deg, #ff8a00, #e52e71); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .btn-danger { background: linear-gradient(135deg, #e52e71, #b21f1f); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        th { background: rgba(255, 255, 255, 0.1); font-weight: 600; }
+        .status-read { color: #00b09b; }
+        .status-unread { color: #e52e71; }
+        .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-select { background: rgba(255, 255, 255, 0.1); color: white; border: none; padding: 8px 15px; border-radius: 8px; }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
+            <h1>👑 Admin Panel</h1>
             <div>
                 <span>Welcome, <strong id="adminUser"></strong></span>
-                <button class="btn" onclick="logout()" style="margin-left: 15px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <button class="btn" onclick="logout()" style="margin-left: 15px;">🚪 Logout</button>
             </div>
         </header>
         
@@ -152,8 +54,7 @@
         </div>
         
         <div class="card">
-            <h2 style="margin-bottom: 20px;"><i class="fas fa-list-alt"></i> Message Logs</h2>
-            
+            <h2 style="margin-bottom: 20px;">📊 Message Logs</h2>
             <div class="filters">
                 <select class="filter-select" id="userFilter" onchange="filterLogs()">
                     <option value="">All Users</option>
@@ -163,14 +64,9 @@
                     <option value="sent">Sent</option>
                     <option value="read">Read</option>
                 </select>
-                <button class="btn" onclick="exportLogs()">
-                    <i class="fas fa-download"></i> Export Logs
-                </button>
-                <button class="btn btn-danger" onclick="clearLogs()">
-                    <i class="fas fa-trash"></i> Clear Logs
-                </button>
+                <button class="btn" onclick="exportLogs()">📥 Export Logs</button>
+                <button class="btn btn-danger" onclick="clearLogs()">🗑️ Clear Logs</button>
             </div>
-            
             <div style="max-height: 500px; overflow-y: auto;">
                 <table>
                     <thead>
@@ -184,33 +80,13 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody id="logsTable">
-                        <!-- Logs will appear here -->
-                    </tbody>
+                    <tbody id="logsTable"></tbody>
                 </table>
             </div>
-        </div>
-        
-        <div class="card">
-            <h2 style="margin-bottom: 20px;"><i class="fas fa-users"></i> User Management</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Receiver ID</th>
-                        <th>Last Active</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTable">
-                    <!-- Users will appear here -->
-                </tbody>
-            </table>
         </div>
     </div>
 
     <script>
-        // Check authentication
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser || currentUser.role !== 'admin') {
             window.location.href = 'index.html';
@@ -220,25 +96,15 @@
 
         function updateStats() {
             const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-            const logs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
-            
-            // Calculate statistics
             const totalMessages = messages.length;
             const unreadMessages = messages.filter(msg => !msg.read).length;
             const today = new Date().toDateString();
-            const todayMessages = messages.filter(msg => 
-                new Date(msg.timestamp).toDateString() === today
-            ).length;
+            const todayMessages = messages.filter(msg => new Date(msg.timestamp).toDateString() === today).length;
+            const uniqueUsers = [...new Set(messages.flatMap(msg => [msg.sender, msg.receiver]))].length;
             
-            // Count unique active users (simplified)
-            const uniqueSenders = [...new Set(messages.map(msg => msg.sender))].length;
-            const uniqueReceivers = [...new Set(messages.map(msg => msg.receiver))].length;
-            const activeUsers = uniqueSenders + uniqueReceivers;
-            
-            // Update UI
             document.getElementById('totalMessages').textContent = totalMessages;
             document.getElementById('unreadMessages').textContent = unreadMessages;
-            document.getElementById('activeUsers').textContent = activeUsers;
+            document.getElementById('activeUsers').textContent = uniqueUsers;
             document.getElementById('todayMessages').textContent = todayMessages;
         }
 
@@ -248,42 +114,20 @@
             const actionFilter = document.getElementById('actionFilter').value;
             
             let filteredLogs = logs;
+            if (userFilter) filteredLogs = filteredLogs.filter(log => log.sender === userFilter || log.receiver === userFilter);
+            if (actionFilter) filteredLogs = filteredLogs.filter(log => log.action === actionFilter);
             
-            if (userFilter) {
-                filteredLogs = filteredLogs.filter(log => 
-                    log.sender === userFilter || log.receiver === userFilter
-                );
-            }
-            
-            if (actionFilter) {
-                filteredLogs = filteredLogs.filter(log => log.action === actionFilter);
-            }
-            
-            // Sort by timestamp (newest first)
             filteredLogs.sort((a, b) => b.id - a.id);
-            
             const tbody = document.getElementById('logsTable');
             tbody.innerHTML = filteredLogs.map(log => `
                 <tr>
                     <td>${log.timestamp}</td>
-                    <td>
-                        <span style="background: ${log.action === 'sent' ? '#ff8a00' : '#00b09b'}; 
-                              padding: 4px 8px; border-radius: 10px; font-size: 0.8rem;">
-                            ${log.action.toUpperCase()}
-                        </span>
-                    </td>
+                    <td><span style="background: ${log.action === 'sent' ? '#ff8a00' : '#00b09b'}; padding: 4px 8px; border-radius: 10px; font-size: 0.8rem;">${log.action.toUpperCase()}</span></td>
                     <td>${log.sender}</td>
                     <td>${log.receiver}</td>
                     <td>${log.message}</td>
-                    <td>
-                        <span style="background: ${getPriorityColor(log.priority)}; 
-                              padding: 4px 8px; border-radius: 10px; font-size: 0.8rem;">
-                            ${log.priority.toUpperCase()}
-                        </span>
-                    </td>
-                    <td class="${log.read ? 'status-read' : 'status-unread'}">
-                        ${log.read ? '✓ Read' : '● Unread'}
-                    </td>
+                    <td><span style="background: ${getPriorityColor(log.priority)}; padding: 4px 8px; border-radius: 10px; font-size: 0.8rem;">${log.priority.toUpperCase()}</span></td>
+                    <td class="${log.read ? 'status-read' : 'status-unread'}">${log.read ? '✅ Read' : '● Unread'}</td>
                 </tr>
             `).join('');
             
@@ -293,60 +137,12 @@
         function updateUserFilter(logs) {
             const userFilter = document.getElementById('userFilter');
             const uniqueUsers = [...new Set(logs.flatMap(log => [log.sender, log.receiver]))];
-            
-            // Keep current selection
             const currentSelection = userFilter.value;
-            
-            userFilter.innerHTML = '<option value="">All Users</option>' +
-                uniqueUsers.map(user => `<option value="${user}">${user}</option>`).join('');
-            
-            // Restore selection if still valid
-            if (uniqueUsers.includes(currentSelection)) {
-                userFilter.value = currentSelection;
-            }
+            userFilter.innerHTML = '<option value="">All Users</option>' + uniqueUsers.map(user => `<option value="${user}">${user}</option>`).join('');
+            if (uniqueUsers.includes(currentSelection)) userFilter.value = currentSelection;
         }
 
-        function displayUsers() {
-            const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-            const uniqueUsers = {};
-            
-            // Extract user information from messages
-            messages.forEach(msg => {
-                if (!uniqueUsers[msg.sender]) {
-                    uniqueUsers[msg.sender] = {
-                        username: msg.sender,
-                        role: 'sender',
-                        lastActive: msg.timestamp
-                    };
-                }
-                if (!uniqueUsers[msg.receiver]) {
-                    uniqueUsers[msg.receiver] = {
-                        username: msg.receiver,
-                        role: 'receiver',
-                        lastActive: msg.timestamp
-                    };
-                }
-            });
-            
-            const tbody = document.getElementById('usersTable');
-            tbody.innerHTML = Object.values(uniqueUsers).map(user => `
-                <tr>
-                    <td>${user.username}</td>
-                    <td>
-                        <span style="background: ${user.role === 'sender' ? '#ff8a00' : '#00b09b'}; 
-                              padding: 4px 8px; border-radius: 10px; font-size: 0.8rem;">
-                            ${user.role.toUpperCase()}
-                        </span>
-                    </td>
-                    <td>${user.role === 'receiver' ? user.username : '-'}</td>
-                    <td>${user.lastActive}</td>
-                </tr>
-            `).join('');
-        }
-
-        function filterLogs() {
-            displayLogs();
-        }
+        function filterLogs() { displayLogs(); }
 
         function exportLogs() {
             const logs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
@@ -356,16 +152,7 @@
 
         function convertToCSV(logs) {
             const headers = ['Timestamp', 'Action', 'Sender', 'Receiver', 'Message', 'Priority', 'Status'];
-            const rows = logs.map(log => [
-                log.timestamp,
-                log.action,
-                log.sender,
-                log.receiver,
-                `"${log.message.replace(/"/g, '""')}"`,
-                log.priority,
-                log.read ? 'Read' : 'Unread'
-            ]);
-            
+            const rows = logs.map(log => [log.timestamp, log.action, log.sender, log.receiver, `"${log.message}"`, log.priority, log.read ? 'Read' : 'Unread']);
             return [headers, ...rows].map(row => row.join(',')).join('\n');
         }
 
@@ -385,18 +172,12 @@
                 localStorage.removeItem('pagerMessages');
                 displayLogs();
                 updateStats();
-                displayUsers();
                 alert('All logs have been cleared.');
             }
         }
 
         function getPriorityColor(priority) {
-            const colors = {
-                high: '#e52e71',
-                medium: '#ff8a00',
-                low: '#1a2a6c'
-            };
-            return colors[priority] || '#1a2a6c';
+            return { high: '#e52e71', medium: '#ff8a00', low: '#1a2a6c' }[priority] || '#1a2a6c';
         }
 
         function logout() {
@@ -404,11 +185,9 @@
             window.location.href = 'index.html';
         }
 
-        // Initialize and refresh every 5 seconds
         function refreshData() {
             updateStats();
             displayLogs();
-            displayUsers();
         }
 
         window.addEventListener('load', () => {
