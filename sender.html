@@ -135,7 +135,7 @@
 
         .card-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
@@ -204,6 +204,12 @@
             background: linear-gradient(to right, var(--success), #20c997);
         }
 
+        .btn-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .messages-list {
             max-height: 400px;
             overflow-y: auto;
@@ -243,6 +249,7 @@
             border-radius: 12px;
             font-size: 0.8rem;
             font-weight: 600;
+            color: white;
         }
 
         .message-content {
@@ -261,6 +268,7 @@
             padding: 2px 6px;
             border-radius: 8px;
             font-size: 0.7rem;
+            color: white;
         }
 
         .status-sent { background: var(--info); }
@@ -315,10 +323,40 @@
             background: var(--danger);
         }
 
+        .cloud-sync {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--tertiary);
+            animation: pulse 1.5s infinite;
+        }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
             100% { opacity: 1; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -341,7 +379,12 @@
 
         <div class="connection-status">
             <div class="status-indicator" id="statusIndicator"></div>
-            <span id="statusText">Checking connection...</span>
+            <span id="statusText">Checking cloud connection...</span>
+        </div>
+
+        <div class="cloud-sync">
+            <div class="sync-indicator"></div>
+            <span>Auto-syncing with cloud database every 3 seconds</span>
         </div>
 
         <div class="dashboard">
@@ -387,7 +430,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-send">
+                    <button type="submit" class="btn btn-send" id="sendBtn">
                         <i class="fas fa-paper-plane"></i> Send Message
                     </button>
                 </form>
@@ -402,9 +445,8 @@
                 </div>
                 
                 <div class="messages-list" id="messagesList">
-                    <!-- Messages will be loaded here -->
                     <div class="empty-state">
-                        <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.3; margin-bottom: 15px;"></i>
+                        <i class="fas fa-inbox"></i>
                         <p>No messages sent yet</p>
                     </div>
                 </div>
@@ -415,11 +457,178 @@
     <div class="notification" id="notification"></div>
 
     <script>
+        // Cloud Storage Class (Same as index.html)
+        class CloudStorage {
+            constructor() {
+                this.API_KEY = '$2a$10$/8bOzUCg/s1ybR/cGuRooOKeGep3PsFx6Ocq2axmulCMx9FdxP4L2';
+                this.BIN_ID = '68f91f62d0ea881f40b3d484';
+                this.BASE_URL = 'https://api.jsonbin.io/v3/b';
+                this.isOnline = navigator.onLine;
+                this.syncInterval = null;
+                this.setupNetworkListeners();
+            }
+
+            async getCloudData() {
+                if (!this.isOnline) return this.getLocalData();
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}/latest`, {
+                        headers: { 'X-Master-Key': this.API_KEY }
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const data = await response.json();
+                    return data.record || this.getDefaultData();
+                } catch (error) {
+                    console.error('Cloud read error:', error);
+                    return this.getLocalData();
+                }
+            }
+
+            async saveToCloud(data) {
+                if (!this.isOnline) return false;
+
+                try {
+                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': this.API_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    return response.ok;
+                } catch (error) {
+                    console.error('Cloud save error:', error);
+                    return false;
+                }
+            }
+
+            async syncData() {
+                if (!this.isOnline) return this.getLocalData();
+
+                try {
+                    const cloudData = await this.getCloudData();
+                    const localData = this.getLocalData();
+                    const mergedData = this.mergeData(localData, cloudData);
+                    
+                    this.saveLocally(mergedData);
+                    await this.saveToCloud(mergedData);
+                    
+                    return mergedData;
+                } catch (error) {
+                    return this.getLocalData();
+                }
+            }
+
+            getLocalData() {
+                const data = localStorage.getItem('securePagerData');
+                return data ? JSON.parse(data) : this.getDefaultData();
+            }
+
+            saveLocally(data) {
+                localStorage.setItem('securePagerData', JSON.stringify(data));
+            }
+
+            getDefaultData() {
+                return {
+                    users: [],
+                    messages: [],
+                    logs: [],
+                    system: { lastUpdate: Date.now(), activeSessions: [] }
+                };
+            }
+
+            mergeData(local, cloud) {
+                const allMessages = [...local.messages, ...cloud.messages];
+                const messageMap = new Map();
+                allMessages.forEach(msg => messageMap.set(msg.id, msg));
+                
+                const allUsers = [...local.users, ...cloud.users];
+                const userMap = new Map();
+                allUsers.forEach(user => userMap.set(user.username, user));
+                
+                const allLogs = [...local.logs, ...cloud.logs];
+                const logMap = new Map();
+                allLogs.forEach(log => logMap.set(log.timestamp + log.user + log.action, log));
+
+                return {
+                    users: Array.from(userMap.values()),
+                    messages: Array.from(messageMap.values()).sort((a, b) => b.timestamp - a.timestamp),
+                    logs: Array.from(logMap.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
+                    system: { ...local.system, ...cloud.system, lastUpdate: Date.now() }
+                };
+            }
+
+            async sendMessage(message) {
+                const data = this.getLocalData();
+                
+                message.id = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                message.timestamp = Date.now();
+                message.status = 'sent';
+                
+                data.messages.push(message);
+                data.logs.push({
+                    timestamp: Date.now(),
+                    user: message.sender,
+                    action: 'send_message',
+                    details: `Message sent to ${message.receiverId}`,
+                    messageId: message.id
+                });
+                
+                data.system.lastUpdate = Date.now();
+                
+                this.saveLocally(data);
+                if (this.isOnline) {
+                    await this.saveToCloud(data);
+                }
+                
+                return message;
+            }
+
+            setupNetworkListeners() {
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.updateConnectionStatus(true);
+                });
+
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    this.updateConnectionStatus(false);
+                });
+            }
+
+            updateConnectionStatus(online) {
+                const indicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                
+                if (online) {
+                    indicator.className = 'status-indicator status-connected';
+                    statusText.textContent = 'Connected to cloud database';
+                } else {
+                    indicator.className = 'status-indicator status-disconnected';
+                    statusText.textContent = 'Offline mode - local data only';
+                }
+            }
+
+            startAutoSync() {
+                this.syncInterval = setInterval(async () => {
+                    if (this.isOnline) {
+                        await this.syncData();
+                        window.dispatchEvent(new CustomEvent('pagerDataUpdated'));
+                    }
+                }, 3000);
+            }
+        }
+
+        // Sender Application
         class SenderApp {
             constructor() {
                 this.currentUser = null;
                 this.selectedPriority = 'low';
-                this.storage = new PagerStorage();
+                this.storage = new CloudStorage();
                 this.init();
             }
 
@@ -428,7 +637,7 @@
                 this.setupEventListeners();
                 this.loadRecentMessages();
                 this.updateConnectionStatus();
-                this.startAutoRefresh();
+                this.storage.startAutoSync();
             }
 
             checkAuthentication() {
@@ -476,8 +685,8 @@
                     showNotification('Messages refreshed');
                 });
 
-                // Storage updates from other tabs
-                window.addEventListener('pagerStorageUpdate', () => {
+                // Cloud data updates
+                window.addEventListener('pagerDataUpdated', () => {
                     this.loadRecentMessages();
                 });
 
@@ -489,6 +698,7 @@
             async sendMessage() {
                 const receiverId = document.getElementById('receiverId').value.trim();
                 const messageContent = document.getElementById('messageContent').value.trim();
+                const sendBtn = document.getElementById('sendBtn');
 
                 if (!receiverId || !messageContent) {
                     showNotification('Please fill in all fields', 'error');
@@ -499,20 +709,21 @@
                 const data = this.storage.getLocalData();
                 const receiver = data.users.find(u => u.id === receiverId && u.role === 'receiver');
                 if (!receiver) {
-                    showNotification('Invalid Receiver ID', 'error');
+                    showNotification('Invalid Receiver ID. Use REC001 or REC002', 'error');
                     return;
                 }
 
+                // Disable send button during process
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                sendBtn.disabled = true;
+
                 const message = {
-                    id: this.storage.generateId(),
                     sender: this.currentUser.username,
                     senderId: this.currentUser.id,
                     receiverId: receiverId,
                     receiver: receiver.username,
                     content: messageContent,
-                    priority: this.selectedPriority,
-                    timestamp: Date.now(),
-                    status: 'sent'
+                    priority: this.selectedPriority
                 };
 
                 try {
@@ -529,6 +740,10 @@
                 } catch (error) {
                     showNotification('Failed to send message', 'error');
                     console.error('Send message error:', error);
+                } finally {
+                    // Re-enable send button
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                    sendBtn.disabled = false;
                 }
             }
 
@@ -537,14 +752,14 @@
                 const userMessages = data.messages
                     .filter(msg => msg.sender === this.currentUser.username)
                     .sort((a, b) => b.timestamp - a.timestamp)
-                    .slice(0, 10); // Last 10 messages
+                    .slice(0, 10);
 
                 const messagesList = document.getElementById('messagesList');
                 
                 if (userMessages.length === 0) {
                     messagesList.innerHTML = `
-                        <div class="empty-state" style="text-align: center; padding: 40px;">
-                            <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.3; margin-bottom: 15px;"></i>
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
                             <p>No messages sent yet</p>
                         </div>
                     `;
@@ -562,8 +777,8 @@
                         <div class="message-content">${this.escapeHtml(msg.content)}</div>
                         <div class="message-footer">
                             <span>${new Date(msg.timestamp).toLocaleString()}</span>
-                            <span class="status-badge status-${msg.status}">
-                                ${msg.status.toUpperCase()}
+                            <span class="status-badge status-${msg.status || 'sent'}">
+                                ${(msg.status || 'sent').toUpperCase()}
                             </span>
                         </div>
                     </div>
@@ -586,27 +801,10 @@
             }
 
             updateConnectionStatus() {
-                const indicator = document.getElementById('statusIndicator');
-                const statusText = document.getElementById('statusText');
-                
-                if (navigator.onLine) {
-                    indicator.className = 'status-indicator status-connected';
-                    statusText.textContent = 'Connected to network';
-                } else {
-                    indicator.className = 'status-indicator status-disconnected';
-                    statusText.textContent = 'Offline mode - local data only';
-                }
-            }
-
-            startAutoRefresh() {
-                // Refresh messages every 10 seconds
-                setInterval(() => {
-                    this.loadRecentMessages();
-                }, 10000);
+                this.storage.updateConnectionStatus(navigator.onLine);
             }
         }
 
-        // Show notification function
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -616,61 +814,6 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
-        }
-
-        // Include the PagerStorage class from index.html
-        class PagerStorage {
-            constructor() {
-                this.STORAGE_KEY = 'securePagerData';
-                this.SYNC_INTERVAL = 2000;
-                this.lastSync = 0;
-                this.isOnline = navigator.onLine;
-            }
-
-            getLocalData() {
-                const data = localStorage.getItem(this.STORAGE_KEY);
-                return data ? JSON.parse(data) : this.getDefaultData();
-            }
-
-            getDefaultData() {
-                return {
-                    users: [],
-                    messages: [],
-                    logs: [],
-                    system: { lastUpdate: Date.now(), activeSessions: [] }
-                };
-            }
-
-            generateId() {
-                return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            }
-
-            async sendMessage(message) {
-                const data = this.getLocalData();
-                data.messages.push(message);
-                data.logs.push({
-                    timestamp: Date.now(),
-                    user: message.sender,
-                    action: 'send_message',
-                    details: `Message sent to ${message.receiverId}`,
-                    messageId: message.id
-                });
-                
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-                
-                // Simulate cloud sync
-                if (this.isOnline) {
-                    const cloudKey = 'securePagerCloud';
-                    localStorage.setItem(cloudKey, JSON.stringify(data));
-                }
-                
-                this.triggerStorageEvent();
-                return message;
-            }
-
-            triggerStorageEvent() {
-                window.dispatchEvent(new Event('pagerStorageUpdate'));
-            }
         }
 
         // Initialize the sender application
