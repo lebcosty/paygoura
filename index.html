@@ -3,10 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecurePager Pro | Cross-Browser System</title>
+    <title>SecurePager Pro | Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ... (keep all your existing styles) ... */
+        :root {
+            --primary: #1a2a6c;
+            --secondary: #b21f1f;
+            --tertiary: #fdbb2d;
+            --light: #f8f9fa;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--tertiary));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--light);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--light), var(--tertiary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--tertiary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 15px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .demo-accounts {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .demo-accounts h3 {
+            margin-bottom: 10px;
+            color: var(--tertiary);
+        }
+
+        .account {
+            margin-bottom: 5px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #e52e71;
+        }
     </style>
 </head>
 <body>
@@ -14,456 +153,145 @@
         <div class="glass-card">
             <div class="logo">
                 <h1><i class="fas fa-broadcast-tower"></i> SecurePager Pro</h1>
-                <p>Cross-Browser Enterprise Communication</p>
-            </div>
-            
-            <div class="api-status" id="apiStatus">
-                <i class="fas fa-cloud"></i> Cloud Database: Checking...
-            </div>
-            
-            <div class="connection-status">
-                <div class="status-indicator" id="statusIndicator"></div>
-                <span id="statusText">Initializing cloud connection...</span>
+                <p>Enterprise Communication System</p>
             </div>
             
             <form id="loginForm">
                 <div class="form-group">
                     <label for="username"><i class="fas fa-user"></i> Username</label>
-                    <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="password"><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required>
                 </div>
                 
                 <button type="submit" class="btn" id="loginBtn">
-                    <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                    <i class="fas fa-sign-in-alt"></i> Login
                 </button>
             </form>
             
-            <div class="sync-info">
-                <i class="fas fa-sync-alt"></i> Real-time sync across all browsers
-            </div>
-            
             <div class="demo-accounts">
                 <h3><i class="fas fa-info-circle"></i> Demo Accounts</h3>
-                
-                <div class="account-type">
-                    <strong>Admin</strong>
-                    <div class="account-details">
-                        <div class="account">Username: admin</div>
-                        <div class="account">Password: admin123</div>
-                    </div>
-                </div>
-                
-                <div class="account-type">
-                    <strong>Senders</strong>
-                    <div class="account-details">
-                        <div class="account">Username: sender1</div>
-                        <div class="account">Password: sender123</div>
-                        <div class="account">Username: sender2</div>
-                        <div class="account">Password: sender123</div>
-                    </div>
-                </div>
-                
-                <div class="account-type">
-                    <strong>Receivers</strong>
-                    <div class="account-details">
-                        <div class="account">Username: receiver1</div>
-                        <div class="account">Password: receiver123</div>
-                        <div class="account">ID: REC001</div>
-                        <div class="account">Username: receiver2</div>
-                        <div class="account">Password: receiver123</div>
-                        <div class="account">ID: REC002</div>
-                    </div>
-                </div>
+                <div class="account"><strong>Admin:</strong> admin / admin123</div>
+                <div class="account"><strong>Sender 1:</strong> sender1 / sender123</div>
+                <div class="account"><strong>Sender 2:</strong> sender2 / sender123</div>
+                <div class="account"><strong>Receiver 1:</strong> receiver1 / receiver123 (ID: REC001)</div>
+                <div class="account"><strong>Receiver 2:</strong> receiver2 / receiver123 (ID: REC002)</div>
             </div>
-        </div>
-        
-        <div class="footer">
-            <p>SecurePager Pro &copy; 2023 | Multi-Browser Enterprise Solution</p>
         </div>
     </div>
 
     <div class="notification" id="notification"></div>
 
     <script>
-        // Enhanced Cloud Storage with Better Error Handling
-        class CloudStorage {
+        // Simple Storage Manager
+        class PagerStorage {
             constructor() {
-                this.API_KEY = '$2a$10$/8bOzUCg/s1ybR/cGuRooOKeGep3PsFx6Ocq2axmulCMx9FdxP4L2';
-                this.BIN_ID = '68f91f62d0ea881f40b3d484';
-                this.BASE_URL = 'https://api.jsonbin.io/v3/b';
-                this.isOnline = navigator.onLine;
-                this.syncInterval = null;
-                this.setupNetworkListeners();
+                this.initStorage();
             }
 
-            async testConnection() {
-                try {
-                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
-                        headers: { 'X-Master-Key': this.API_KEY }
-                    });
-                    return response.ok;
-                } catch (error) {
-                    console.error('Connection test failed:', error);
-                    return false;
+            initStorage() {
+                if (!localStorage.getItem('pagerUsers')) {
+                    const users = [
+                        { username: 'admin', password: 'admin123', role: 'admin', id: 'ADMIN001' },
+                        { username: 'sender1', password: 'sender123', role: 'sender', id: 'SEN001' },
+                        { username: 'sender2', password: 'sender123', role: 'sender', id: 'SEN002' },
+                        { username: 'receiver1', password: 'receiver123', role: 'receiver', id: 'REC001' },
+                        { username: 'receiver2', password: 'receiver123', role: 'receiver', id: 'REC002' }
+                    ];
+                    localStorage.setItem('pagerUsers', JSON.stringify(users));
+                    localStorage.setItem('pagerMessages', JSON.stringify([]));
                 }
             }
 
-            async getCloudData() {
-                if (!this.isOnline) {
-                    console.log('📴 Offline - using local data');
-                    return this.getLocalData();
-                }
-
-                try {
-                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}/latest`, {
-                        headers: { 'X-Master-Key': this.API_KEY }
-                    });
-                    
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    
-                    const data = await response.json();
-                    console.log('📥 Cloud data loaded:', data.record ? 'Success' : 'Empty');
-                    return data.record || this.getDefaultData();
-                } catch (error) {
-                    console.error('❌ Cloud read failed, using local data');
-                    return this.getLocalData();
-                }
+            getUsers() {
+                return JSON.parse(localStorage.getItem('pagerUsers') || '[]');
             }
 
-            async saveToCloud(data) {
-                if (!this.isOnline) {
-                    console.log('📴 Offline - saving locally only');
-                    return false;
-                }
-
-                try {
-                    const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': this.API_KEY
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    
-                    console.log('✅ Data saved to cloud');
-                    return true;
-                } catch (error) {
-                    console.error('❌ Cloud save failed');
-                    return false;
-                }
+            getMessages() {
+                return JSON.parse(localStorage.getItem('pagerMessages') || '[]');
             }
 
-            async syncData() {
-                console.log('🔄 Starting data sync...');
-                try {
-                    const cloudData = await this.getCloudData();
-                    const localData = this.getLocalData();
-                    
-                    // Enhanced merge with better conflict resolution
-                    const mergedData = this.mergeData(localData, cloudData);
-                    
-                    // Save everywhere
-                    this.saveLocally(mergedData);
-                    await this.saveToCloud(mergedData);
-                    
-                    console.log('✅ Sync completed successfully');
-                    return mergedData;
-                } catch (error) {
-                    console.error('❌ Sync failed:', error);
-                    const localData = this.getLocalData();
-                    return localData;
-                }
+            saveMessage(message) {
+                const messages = this.getMessages();
+                message.id = 'msg_' + Date.now();
+                message.timestamp = Date.now();
+                message.status = 'sent';
+                messages.push(message);
+                localStorage.setItem('pagerMessages', JSON.stringify(messages));
+                return message;
             }
 
-            getLocalData() {
-                try {
-                    const data = localStorage.getItem('securePagerData');
-                    if (data) {
-                        const parsed = JSON.parse(data);
-                        console.log('📁 Local data loaded:', parsed.users.length + ' users');
-                        return parsed;
-                    }
-                } catch (error) {
-                    console.error('❌ Error reading local data');
-                }
-                
-                console.log('📁 No local data, using default');
-                return this.getDefaultData();
-            }
-
-            saveLocally(data) {
-                try {
-                    localStorage.setItem('securePagerData', JSON.stringify(data));
-                    console.log('💾 Local data saved');
-                } catch (error) {
-                    console.error('❌ Error saving local data');
-                }
-            }
-
-            getDefaultData() {
-                const defaultData = {
-                    users: [
-                        { username: 'admin', password: 'admin123', role: 'admin', id: 'ADMIN001', lastActive: Date.now() },
-                        { username: 'sender1', password: 'sender123', role: 'sender', id: 'SEN001', lastActive: Date.now() },
-                        { username: 'sender2', password: 'sender123', role: 'sender', id: 'SEN002', lastActive: Date.now() },
-                        { username: 'receiver1', password: 'receiver123', role: 'receiver', id: 'REC001', lastActive: Date.now() },
-                        { username: 'receiver2', password: 'receiver123', role: 'receiver', id: 'REC002', lastActive: Date.now() }
-                    ],
-                    messages: [],
-                    logs: [],
-                    system: { 
-                        lastUpdate: Date.now(), 
-                        activeSessions: [],
-                        created: new Date().toISOString()
-                    }
-                };
-                console.log('🆕 Using default data structure');
-                return defaultData;
-            }
-
-            mergeData(local, cloud) {
-                // Enhanced merge - prioritize cloud data but keep local activity
-                const userMap = new Map();
-                
-                // Add cloud users first (cloud priority)
-                if (cloud.users) {
-                    cloud.users.forEach(user => userMap.set(user.username, { ...user }));
-                }
-                
-                // Merge local users, keeping their lastActive if more recent
-                if (local.users) {
-                    local.users.forEach(localUser => {
-                        const existingUser = userMap.get(localUser.username);
-                        if (existingUser) {
-                            // Keep the most recent lastActive
-                            if (localUser.lastActive > existingUser.lastActive) {
-                                existingUser.lastActive = localUser.lastActive;
-                            }
-                        } else {
-                            userMap.set(localUser.username, { ...localUser });
-                        }
-                    });
-                }
-
-                // Merge messages - cloud priority
-                const messageMap = new Map();
-                const allMessages = [...(cloud.messages || []), ...(local.messages || [])];
-                allMessages.forEach(msg => messageMap.set(msg.id, msg));
-
-                // Merge logs
-                const logMap = new Map();
-                const allLogs = [...(cloud.logs || []), ...(local.logs || [])];
-                allLogs.forEach(log => logMap.set(log.timestamp + log.user + log.action, log));
-
-                return {
-                    users: Array.from(userMap.values()),
-                    messages: Array.from(messageMap.values()).sort((a, b) => b.timestamp - a.timestamp),
-                    logs: Array.from(logMap.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
-                    system: { 
-                        ...(cloud.system || {}), 
-                        ...(local.system || {}),
-                        lastUpdate: Date.now(),
-                        lastSync: new Date().toISOString()
-                    }
-                };
-            }
-
-            setupNetworkListeners() {
-                window.addEventListener('online', () => {
-                    this.isOnline = true;
-                    this.updateConnectionStatus(true);
-                    console.log('🌐 Online - syncing data');
-                    this.syncData();
-                });
-
-                window.addEventListener('offline', () => {
-                    this.isOnline = false;
-                    this.updateConnectionStatus(false);
-                    console.log('📴 Offline mode');
-                });
-            }
-
-            updateConnectionStatus(online) {
-                const indicator = document.getElementById('statusIndicator');
-                const statusText = document.getElementById('statusText');
-                
-                if (online) {
-                    indicator.className = 'status-indicator status-connected';
-                    statusText.textContent = 'Connected to cloud database';
-                } else {
-                    indicator.className = 'status-indicator status-disconnected';
-                    statusText.textContent = 'Offline mode - local data only';
+            markAsRead(messageId) {
+                const messages = this.getMessages();
+                const message = messages.find(m => m.id === messageId);
+                if (message) {
+                    message.read = true;
+                    message.readAt = Date.now();
+                    localStorage.setItem('pagerMessages', JSON.stringify(messages));
                 }
             }
         }
 
-        // Initialize cloud storage
-        const cloudStorage = new CloudStorage();
+        const storage = new PagerStorage();
 
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
-            notification.className = 'notification';
-            notification.classList.add(type, 'show');
+            notification.className = 'notification ' + (type === 'error' ? 'error' : '');
+            notification.classList.add('show');
             
             setTimeout(() => {
                 notification.classList.remove('show');
-            }, 4000);
+            }, 3000);
         }
 
-        async function updateApiStatus() {
-            const apiStatus = document.getElementById('apiStatus');
-            const isConnected = await cloudStorage.testConnection();
-            
-            if (isConnected) {
-                apiStatus.innerHTML = '<i class="fas fa-cloud"></i> Cloud Database: Connected';
-                apiStatus.className = 'api-status connected';
-            } else {
-                apiStatus.innerHTML = '<i class="fas fa-cloud-slash"></i> Cloud Database: Offline';
-                apiStatus.className = 'api-status';
-            }
-        }
-
-        // Enhanced Login Handler
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const loginBtn = document.getElementById('loginBtn');
-            const originalText = loginBtn.innerHTML;
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
-            loginBtn.disabled = true;
             
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
+            const loginBtn = document.getElementById('loginBtn');
             
             if (!username || !password) {
-                showNotification('Please enter both username and password', 'error');
-                loginBtn.innerHTML = originalText;
-                loginBtn.disabled = false;
+                showNotification('Please enter username and password', 'error');
                 return;
             }
+
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            loginBtn.disabled = true;
+
+            const users = storage.getUsers();
+            const user = users.find(u => u.username === username && u.password === password);
             
-            try {
-                console.log('🔐 Attempting login for:', username);
+            if (user) {
+                // Store user session
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                sessionStorage.setItem('loginTime', Date.now().toString());
                 
-                // Test connection first
-                await updateApiStatus();
+                showNotification(`Welcome, ${user.username}!`);
                 
-                // Sync data from cloud
-                const data = await cloudStorage.syncData();
-                console.log('📊 Data after sync:', data.users.length + ' users found');
-                
-                // Find user with case-insensitive comparison
-                const user = data.users.find(u => 
-                    u.username.toLowerCase() === username.toLowerCase() && 
-                    u.password === password
-                );
-                
-                if (user) {
-                    console.log('✅ Login successful for:', user.username, 'role:', user.role);
-                    
-                    // Update user activity
-                    user.lastActive = Date.now();
-                    user.lastLogin = new Date().toISOString();
-                    
-                    // Add login log
-                    data.logs.push({
-                        timestamp: new Date().toISOString(),
-                        user: user.username,
-                        role: user.role,
-                        action: 'login',
-                        details: `User logged into ${user.role} dashboard`,
-                        device: navigator.userAgent.substring(0, 50)
-                    });
-                    
-                    // Save updated data
-                    cloudStorage.saveLocally(data);
-                    await cloudStorage.saveToCloud(data);
-                    
-                    // Store session with enhanced data
-                    const sessionData = {
-                        ...user,
-                        loginTime: Date.now(),
-                        sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                    };
-                    
-                    sessionStorage.setItem('currentUser', JSON.stringify(sessionData));
-                    sessionStorage.setItem('lastActivity', Date.now().toString());
-                    
-                    console.log('💾 Session stored:', sessionData.username);
-                    
-                    showNotification(`Welcome, ${user.username}! Redirecting...`);
-                    
-                    // Redirect with role-based routing
-                    setTimeout(() => {
-                        const redirects = {
-                            'admin': 'admin.html',
-                            'sender': 'sender.html', 
-                            'receiver': 'receiver.html'
-                        };
-                        
-                        const redirectPage = redirects[user.role] || 'index.html';
-                        console.log('🔄 Redirecting to:', redirectPage);
-                        window.location.href = redirectPage;
-                    }, 1500);
-                    
-                } else {
-                    console.log('❌ Login failed: Invalid credentials for', username);
-                    showNotification('Invalid username or password', 'error');
-                    loginBtn.innerHTML = originalText;
-                    loginBtn.disabled = false;
-                }
-                
-            } catch (error) {
-                console.error('💥 Login error:', error);
-                
-                // Fallback to local authentication
-                console.log('🔄 Trying local authentication fallback...');
-                const localData = cloudStorage.getLocalData();
-                const user = localData.users.find(u => 
-                    u.username.toLowerCase() === username.toLowerCase() && 
-                    u.password === password
-                );
-                
-                if (user) {
-                    console.log('✅ Local login successful for:', user.username);
-                    
-                    // Store basic session
-                    sessionStorage.setItem('currentUser', JSON.stringify(user));
-                    sessionStorage.setItem('lastActivity', Date.now().toString());
-                    
-                    showNotification(`Welcome, ${user.username}! (Offline Mode)`);
-                    
-                    setTimeout(() => {
-                        const redirects = {
-                            'admin': 'admin.html',
-                            'sender': 'sender.html',
-                            'receiver': 'receiver.html'
-                        };
-                        window.location.href = redirects[user.role] || 'index.html';
-                    }, 1000);
-                } else {
-                    showNotification('Login failed. Please check credentials.', 'error');
-                    loginBtn.innerHTML = originalText;
-                    loginBtn.disabled = false;
-                }
+                setTimeout(() => {
+                    if (user.role === 'admin') window.location.href = 'admin.html';
+                    else if (user.role === 'sender') window.location.href = 'sender.html';
+                    else if (user.role === 'receiver') window.location.href = 'receiver.html';
+                }, 1000);
+            } else {
+                showNotification('Invalid username or password', 'error');
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                loginBtn.disabled = false;
             }
         });
 
-        // Initialize
-        cloudStorage.updateConnectionStatus(navigator.onLine);
-        updateApiStatus();
-
-        // Debug info
-        console.log('🔧 SecurePager Pro Initialized');
-        console.log('📋 Demo accounts available: admin/admin123, sender1/sender123, receiver1/receiver123');
+        // Auto-fill demo accounts for testing
+        document.getElementById('username').addEventListener('focus', function() {
+            if (!this.value) {
+                this.value = 'admin';
+                document.getElementById('password').value = 'admin123';
+            }
+        });
     </script>
 </body>
 </html>
