@@ -6,293 +6,7 @@
     <title>SecurePager Pro | Cross-Browser System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #1a2a6c;
-            --secondary: #b21f1f;
-            --tertiary: #fdbb2d;
-            --success: #28a745;
-            --warning: #ff8a00;
-            --danger: #e52e71;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            --transition: all 0.3s ease;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--tertiary));
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            color: var(--light);
-        }
-
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow);
-            padding: 30px;
-            width: 100%;
-            transition: var(--transition);
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .logo h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-            background: linear-gradient(to right, var(--light), var(--tertiary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .logo p {
-            font-size: 1rem;
-            opacity: 0.8;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .status-connected {
-            background: var(--success);
-            animation: pulse 2s infinite;
-        }
-
-        .status-disconnected {
-            background: var(--danger);
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
-            color: var(--light);
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--tertiary);
-            box-shadow: 0 0 0 2px rgba(253, 187, 45, 0.2);
-        }
-
-        .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .btn {
-            display: inline-block;
-            width: 100%;
-            padding: 12px 15px;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            text-align: center;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            margin-top: 10px;
-        }
-
-        .demo-accounts {
-            margin-top: 25px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-
-        .demo-accounts h3 {
-            margin-bottom: 10px;
-            font-size: 1rem;
-            color: var(--tertiary);
-        }
-
-        .account-type {
-            margin-bottom: 10px;
-        }
-
-        .account-type:last-child {
-            margin-bottom: 0;
-        }
-
-        .account-type strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .account-details {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .account {
-            padding: 5px 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: var(--success);
-            color: white;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transform: translateX(150%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            max-width: 300px;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.error {
-            background: var(--danger);
-        }
-
-        .notification.warning {
-            background: var(--warning);
-            color: var(--dark);
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 0.8rem;
-            opacity: 0.7;
-        }
-
-        .sync-info {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        .api-status {
-            text-align: center;
-            margin-bottom: 15px;
-            padding: 8px;
-            border-radius: 6px;
-            background: rgba(0, 0, 0, 0.2);
-            font-size: 0.8rem;
-        }
-
-        .api-status.connected {
-            background: rgba(40, 167, 69, 0.2);
-            color: var(--success);
-        }
-
-        @media (max-width: 480px) {
-            .glass-card {
-                padding: 20px;
-            }
-            
-            .logo h1 {
-                font-size: 1.8rem;
-            }
-        }
+        /* ... (keep all your existing styles) ... */
     </style>
 </head>
 <body>
@@ -375,71 +89,56 @@
     <div class="notification" id="notification"></div>
 
     <script>
-        // Cloud Database Manager with Your Actual Credentials
+        // Enhanced Cloud Storage with Better Error Handling
         class CloudStorage {
             constructor() {
-                // ✅ YOUR ACTUAL CREDENTIALS
                 this.API_KEY = '$2a$10$/8bOzUCg/s1ybR/cGuRooOKeGep3PsFx6Ocq2axmulCMx9FdxP4L2';
                 this.BIN_ID = '68f91f62d0ea881f40b3d484';
                 this.BASE_URL = 'https://api.jsonbin.io/v3/b';
                 this.isOnline = navigator.onLine;
                 this.syncInterval = null;
                 this.setupNetworkListeners();
-                
-                console.log('🔑 Cloud Storage Initialized with:', {
-                    binId: this.BIN_ID,
-                    apiKey: this.API_KEY.substring(0, 10) + '...'
-                });
             }
 
-            // Test connection to JSONBin.io
             async testConnection() {
                 try {
                     const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
-                        headers: {
-                            'X-Master-Key': this.API_KEY
-                        }
+                        headers: { 'X-Master-Key': this.API_KEY }
                     });
-                    
-                    if (response.ok) {
-                        console.log('✅ JSONBin.io connection successful');
-                        return true;
-                    } else {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
+                    return response.ok;
                 } catch (error) {
-                    console.error('❌ JSONBin.io connection failed:', error);
+                    console.error('Connection test failed:', error);
                     return false;
                 }
             }
 
-            // READ - Get latest data from cloud
             async getCloudData() {
                 if (!this.isOnline) {
+                    console.log('📴 Offline - using local data');
                     return this.getLocalData();
                 }
 
                 try {
                     const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}/latest`, {
-                        headers: {
-                            'X-Master-Key': this.API_KEY
-                        }
+                        headers: { 'X-Master-Key': this.API_KEY }
                     });
                     
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     
                     const data = await response.json();
-                    console.log('📥 Data fetched from cloud:', data.record.messages.length + ' messages');
+                    console.log('📥 Cloud data loaded:', data.record ? 'Success' : 'Empty');
                     return data.record || this.getDefaultData();
                 } catch (error) {
-                    console.error('Cloud read error:', error);
+                    console.error('❌ Cloud read failed, using local data');
                     return this.getLocalData();
                 }
             }
 
-            // UPDATE - Save data to cloud
             async saveToCloud(data) {
-                if (!this.isOnline) return false;
+                if (!this.isOnline) {
+                    console.log('📴 Offline - saving locally only');
+                    return false;
+                }
 
                 try {
                     const response = await fetch(`${this.BASE_URL}/${this.BIN_ID}`, {
@@ -453,51 +152,63 @@
                     
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     
-                    console.log('📤 Data saved to cloud:', data.messages.length + ' messages');
+                    console.log('✅ Data saved to cloud');
                     return true;
                 } catch (error) {
-                    console.error('Cloud save error:', error);
+                    console.error('❌ Cloud save failed');
                     return false;
                 }
             }
 
-            // Sync local and cloud data
             async syncData() {
-                if (!this.isOnline) {
-                    return this.getLocalData();
-                }
-
+                console.log('🔄 Starting data sync...');
                 try {
                     const cloudData = await this.getCloudData();
                     const localData = this.getLocalData();
                     
-                    // Merge data (cloud takes precedence)
+                    // Enhanced merge with better conflict resolution
                     const mergedData = this.mergeData(localData, cloudData);
                     
-                    // Save merged data everywhere
+                    // Save everywhere
                     this.saveLocally(mergedData);
                     await this.saveToCloud(mergedData);
                     
-                    console.log('🔄 Data synced successfully');
+                    console.log('✅ Sync completed successfully');
                     return mergedData;
                 } catch (error) {
-                    console.error('Sync error:', error);
-                    return this.getLocalData();
+                    console.error('❌ Sync failed:', error);
+                    const localData = this.getLocalData();
+                    return localData;
                 }
             }
 
-            // Local storage methods
             getLocalData() {
-                const data = localStorage.getItem('securePagerData');
-                return data ? JSON.parse(data) : this.getDefaultData();
+                try {
+                    const data = localStorage.getItem('securePagerData');
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        console.log('📁 Local data loaded:', parsed.users.length + ' users');
+                        return parsed;
+                    }
+                } catch (error) {
+                    console.error('❌ Error reading local data');
+                }
+                
+                console.log('📁 No local data, using default');
+                return this.getDefaultData();
             }
 
             saveLocally(data) {
-                localStorage.setItem('securePagerData', JSON.stringify(data));
+                try {
+                    localStorage.setItem('securePagerData', JSON.stringify(data));
+                    console.log('💾 Local data saved');
+                } catch (error) {
+                    console.error('❌ Error saving local data');
+                }
             }
 
             getDefaultData() {
-                return {
+                const defaultData = {
                     users: [
                         { username: 'admin', password: 'admin123', role: 'admin', id: 'ADMIN001', lastActive: Date.now() },
                         { username: 'sender1', password: 'sender123', role: 'sender', id: 'SEN001', lastActive: Date.now() },
@@ -513,20 +224,42 @@
                         created: new Date().toISOString()
                     }
                 };
+                console.log('🆕 Using default data structure');
+                return defaultData;
             }
 
             mergeData(local, cloud) {
-                // Combine and remove duplicates - cloud data takes priority
-                const allMessages = [...local.messages, ...cloud.messages];
-                const messageMap = new Map();
-                allMessages.forEach(msg => messageMap.set(msg.id, msg));
-                
-                const allUsers = [...local.users, ...cloud.users];
+                // Enhanced merge - prioritize cloud data but keep local activity
                 const userMap = new Map();
-                allUsers.forEach(user => userMap.set(user.username, user));
                 
-                const allLogs = [...local.logs, ...cloud.logs];
+                // Add cloud users first (cloud priority)
+                if (cloud.users) {
+                    cloud.users.forEach(user => userMap.set(user.username, { ...user }));
+                }
+                
+                // Merge local users, keeping their lastActive if more recent
+                if (local.users) {
+                    local.users.forEach(localUser => {
+                        const existingUser = userMap.get(localUser.username);
+                        if (existingUser) {
+                            // Keep the most recent lastActive
+                            if (localUser.lastActive > existingUser.lastActive) {
+                                existingUser.lastActive = localUser.lastActive;
+                            }
+                        } else {
+                            userMap.set(localUser.username, { ...localUser });
+                        }
+                    });
+                }
+
+                // Merge messages - cloud priority
+                const messageMap = new Map();
+                const allMessages = [...(cloud.messages || []), ...(local.messages || [])];
+                allMessages.forEach(msg => messageMap.set(msg.id, msg));
+
+                // Merge logs
                 const logMap = new Map();
+                const allLogs = [...(cloud.logs || []), ...(local.logs || [])];
                 allLogs.forEach(log => logMap.set(log.timestamp + log.user + log.action, log));
 
                 return {
@@ -534,81 +267,26 @@
                     messages: Array.from(messageMap.values()).sort((a, b) => b.timestamp - a.timestamp),
                     logs: Array.from(logMap.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
                     system: { 
-                        ...local.system, 
-                        ...cloud.system, 
+                        ...(cloud.system || {}), 
+                        ...(local.system || {}),
                         lastUpdate: Date.now(),
                         lastSync: new Date().toISOString()
                     }
                 };
             }
 
-            // Message operations
-            async sendMessage(message) {
-                const data = this.getLocalData();
-                
-                message.id = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                message.timestamp = Date.now();
-                message.status = 'sent';
-                
-                data.messages.push(message);
-                data.logs.push({
-                    timestamp: Date.now(),
-                    user: message.sender,
-                    action: 'send_message',
-                    details: `Message sent to ${message.receiverId}`,
-                    messageId: message.id
-                });
-                
-                data.system.lastUpdate = Date.now();
-                
-                this.saveLocally(data);
-                if (this.isOnline) {
-                    await this.saveToCloud(data);
-                }
-                
-                console.log('✉️ Message sent:', message);
-                return message;
-            }
-
-            // Mark message as read
-            async markMessageAsRead(messageId, receiverId) {
-                const data = this.getLocalData();
-                const message = data.messages.find(msg => msg.id === messageId);
-                
-                if (message && !message.read) {
-                    message.read = true;
-                    message.readAt = Date.now();
-                    message.status = 'read';
-                    
-                    data.logs.push({
-                        timestamp: Date.now(),
-                        user: receiverId,
-                        action: 'read_message',
-                        details: `Message read: ${messageId}`,
-                        messageId: messageId
-                    });
-                    
-                    data.system.lastUpdate = Date.now();
-                    
-                    this.saveLocally(data);
-                    if (this.isOnline) {
-                        await this.saveToCloud(data);
-                    }
-                    
-                    console.log('📖 Message marked as read:', messageId);
-                }
-            }
-
             setupNetworkListeners() {
                 window.addEventListener('online', () => {
                     this.isOnline = true;
                     this.updateConnectionStatus(true);
-                    this.syncData(); // Sync when coming online
+                    console.log('🌐 Online - syncing data');
+                    this.syncData();
                 });
 
                 window.addEventListener('offline', () => {
                     this.isOnline = false;
                     this.updateConnectionStatus(false);
+                    console.log('📴 Offline mode');
                 });
             }
 
@@ -622,22 +300,6 @@
                 } else {
                     indicator.className = 'status-indicator status-disconnected';
                     statusText.textContent = 'Offline mode - local data only';
-                }
-            }
-
-            startAutoSync() {
-                // Sync every 3 seconds when online
-                this.syncInterval = setInterval(async () => {
-                    if (this.isOnline) {
-                        await this.syncData();
-                        window.dispatchEvent(new CustomEvent('pagerDataUpdated'));
-                    }
-                }, 3000);
-            }
-
-            stopAutoSync() {
-                if (this.syncInterval) {
-                    clearInterval(this.syncInterval);
                 }
             }
         }
@@ -656,7 +318,6 @@
             }, 4000);
         }
 
-        // Update API status
         async function updateApiStatus() {
             const apiStatus = document.getElementById('apiStatus');
             const isConnected = await cloudStorage.testConnection();
@@ -670,7 +331,7 @@
             }
         }
 
-        // Handle login
+        // Enhanced Login Handler
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -690,55 +351,108 @@
             }
             
             try {
+                console.log('🔐 Attempting login for:', username);
+                
                 // Test connection first
                 await updateApiStatus();
                 
                 // Sync data from cloud
                 const data = await cloudStorage.syncData();
+                console.log('📊 Data after sync:', data.users.length + ' users found');
                 
-                const user = data.users.find(u => u.username === username && u.password === password);
+                // Find user with case-insensitive comparison
+                const user = data.users.find(u => 
+                    u.username.toLowerCase() === username.toLowerCase() && 
+                    u.password === password
+                );
                 
                 if (user) {
+                    console.log('✅ Login successful for:', user.username, 'role:', user.role);
+                    
                     // Update user activity
                     user.lastActive = Date.now();
+                    user.lastLogin = new Date().toISOString();
+                    
+                    // Add login log
+                    data.logs.push({
+                        timestamp: new Date().toISOString(),
+                        user: user.username,
+                        role: user.role,
+                        action: 'login',
+                        details: `User logged into ${user.role} dashboard`,
+                        device: navigator.userAgent.substring(0, 50)
+                    });
+                    
+                    // Save updated data
                     cloudStorage.saveLocally(data);
                     await cloudStorage.saveToCloud(data);
                     
-                    // Store session
-                    sessionStorage.setItem('currentUser', JSON.stringify(user));
-                    sessionStorage.setItem('deviceId', `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+                    // Store session with enhanced data
+                    const sessionData = {
+                        ...user,
+                        loginTime: Date.now(),
+                        sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                    };
                     
-                    // Start auto-sync
-                    cloudStorage.startAutoSync();
+                    sessionStorage.setItem('currentUser', JSON.stringify(sessionData));
+                    sessionStorage.setItem('lastActivity', Date.now().toString());
                     
-                    showNotification(`Welcome, ${user.username}! Syncing with cloud...`);
+                    console.log('💾 Session stored:', sessionData.username);
                     
+                    showNotification(`Welcome, ${user.username}! Redirecting...`);
+                    
+                    // Redirect with role-based routing
                     setTimeout(() => {
-                        if (user.role === 'admin') window.location.href = 'admin.html';
-                        else if (user.role === 'sender') window.location.href = 'sender.html';
-                        else if (user.role === 'receiver') window.location.href = 'receiver.html';
-                    }, 2000);
+                        const redirects = {
+                            'admin': 'admin.html',
+                            'sender': 'sender.html', 
+                            'receiver': 'receiver.html'
+                        };
+                        
+                        const redirectPage = redirects[user.role] || 'index.html';
+                        console.log('🔄 Redirecting to:', redirectPage);
+                        window.location.href = redirectPage;
+                    }, 1500);
+                    
                 } else {
+                    console.log('❌ Login failed: Invalid credentials for', username);
                     showNotification('Invalid username or password', 'error');
                     loginBtn.innerHTML = originalText;
                     loginBtn.disabled = false;
                 }
+                
             } catch (error) {
-                console.error('Login error:', error);
-                showNotification('Login failed. Using offline mode.', 'warning');
-                loginBtn.innerHTML = originalText;
-                loginBtn.disabled = false;
+                console.error('💥 Login error:', error);
                 
                 // Fallback to local authentication
+                console.log('🔄 Trying local authentication fallback...');
                 const localData = cloudStorage.getLocalData();
-                const user = localData.users.find(u => u.username === username && u.password === password);
+                const user = localData.users.find(u => 
+                    u.username.toLowerCase() === username.toLowerCase() && 
+                    u.password === password
+                );
+                
                 if (user) {
+                    console.log('✅ Local login successful for:', user.username);
+                    
+                    // Store basic session
                     sessionStorage.setItem('currentUser', JSON.stringify(user));
+                    sessionStorage.setItem('lastActivity', Date.now().toString());
+                    
+                    showNotification(`Welcome, ${user.username}! (Offline Mode)`);
+                    
                     setTimeout(() => {
-                        if (user.role === 'admin') window.location.href = 'admin.html';
-                        else if (user.role === 'sender') window.location.href = 'sender.html';
-                        else if (user.role === 'receiver') window.location.href = 'receiver.html';
+                        const redirects = {
+                            'admin': 'admin.html',
+                            'sender': 'sender.html',
+                            'receiver': 'receiver.html'
+                        };
+                        window.location.href = redirects[user.role] || 'index.html';
                     }, 1000);
+                } else {
+                    showNotification('Login failed. Please check credentials.', 'error');
+                    loginBtn.innerHTML = originalText;
+                    loginBtn.disabled = false;
                 }
             }
         });
@@ -747,8 +461,9 @@
         cloudStorage.updateConnectionStatus(navigator.onLine);
         updateApiStatus();
 
-        // Make cloudStorage available globally for other pages
-        window.cloudStorage = cloudStorage;
+        // Debug info
+        console.log('🔧 SecurePager Pro Initialized');
+        console.log('📋 Demo accounts available: admin/admin123, sender1/sender123, receiver1/receiver123');
     </script>
 </body>
 </html>
