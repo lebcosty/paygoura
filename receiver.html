@@ -12,14 +12,31 @@
         .card { background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .btn { background: linear-gradient(135deg, #ff8a00, #e52e71); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-success { background: linear-gradient(135deg, #00b09b, #96c93d); }
-        .messages-container { max-height: 500px; overflow-y: auto; }
+        .btn-danger { background: linear-gradient(135deg, #e52e71, #b21f1f); }
+        .messages-container { max-height: 500px; overflow-y: auto; padding: 10px; }
         .message { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #ff8a00; cursor: pointer; transition: all 0.3s ease; }
         .message:hover { background: rgba(255, 255, 255, 0.15); }
-        .message.unread { background: rgba(255, 255, 255, 0.2); border-left-color: #e52e71; }
+        .message.unread { background: rgba(255, 255, 255, 0.2); border-left-color: #e52e71; animation: pulse 2s infinite; }
         .message-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .sender { font-weight: 600; color: #ff8a00; }
+        .timestamp { font-size: 0.8rem; opacity: 0.7; }
         .notification { position: fixed; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); color: white; padding: 15px 25px; border-radius: 8px; transform: translateX(150%); transition: transform 0.4s ease; z-index: 1000; }
         .notification.show { transform: translateX(0); }
         .empty-state { text-align: center; padding: 40px; opacity: 0.7; }
+        .status-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+        .status-listening { background: #00b09b; animation: pulse 1.5s infinite; }
+        .status-stopped { background: #e52e71; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .message-priority { padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; }
+        .priority-high { background: #e52e71; }
+        .priority-medium { background: #ff8a00; }
+        .priority-low { background: #1a2a6c; }
     </style>
 </head>
 <body>
@@ -35,9 +52,18 @@
         
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>📨 Messages</h2>
-                <button class="btn btn-success" id="toggleListen">▶️ Start Listening</button>
+                <div>
+                    <h2 style="display: inline; margin-right: 15px;">📨 Messages</h2>
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText" style="font-size: 0.9rem; opacity: 0.8;">Not listening</span>
+                </div>
+                <div>
+                    <button class="btn btn-success" id="listenBtn">▶️ Start Listening</button>
+                    <button class="btn btn-danger" id="stopBtn" style="display: none; margin-left: 10px;">⏹️ Stop</button>
+                    <button class="btn" onclick="refreshMessages()" style="margin-left: 10px;">🔄 Refresh</button>
+                </div>
             </div>
+            
             <div class="messages-container" id="messagesContainer">
                 <div class="empty-state">
                     <p>📭 No messages yet. Start listening to receive messages.</p>
@@ -49,6 +75,7 @@
     <div class="notification" id="notification">🔔 New message received!</div>
 
     <script>
+        // Check authentication
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser || currentUser.role !== 'receiver') {
             window.location.href = 'index.html';
@@ -59,67 +86,115 @@
 
         let isListening = false;
         let checkInterval;
+        let lastCheckedTime = Date.now();
 
-        document.getElementById('toggleListen').addEventListener('click', toggleListening);
+        // Element references
+        const listenBtn = document.getElementById('listenBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
 
-        function toggleListening() {
-            if (!isListening) {
-                startListening();
-            } else {
-                stopListening();
-            }
-        }
+        // Event listeners
+        listenBtn.addEventListener('click', startListening);
+        stopBtn.addEventListener('click', stopListening);
 
         function startListening() {
             isListening = true;
-            document.getElementById('toggleListen').innerHTML = '⏹️ Stop Listening';
-            document.getElementById('toggleListen').classList.remove('btn-success');
+            lastCheckedTime = Date.now();
+            
+            // Update UI
+            listenBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            statusIndicator.className = 'status-indicator status-listening';
+            statusText.textContent = 'Listening for messages...';
+            
+            // Start checking for messages every 2 seconds
             checkInterval = setInterval(checkForMessages, 2000);
+            
+            // Check immediately
             checkForMessages();
+            
+            console.log('Started listening for messages to:', currentUser.receiverId);
         }
 
         function stopListening() {
             isListening = false;
             clearInterval(checkInterval);
-            document.getElementById('toggleListen').innerHTML = '▶️ Start Listening';
-            document.getElementById('toggleListen').classList.add('btn-success');
+            
+            // Update UI
+            listenBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            statusIndicator.className = 'status-indicator status-stopped';
+            statusText.textContent = 'Not listening';
+            
+            console.log('Stopped listening for messages');
         }
 
         function checkForMessages() {
-            const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-            const myMessages = messages.filter(msg => 
-                msg.receiver.toUpperCase() === currentUser.receiverId.toUpperCase()
-            );
-
-            displayMessages(myMessages);
-
-            // Check for new unread messages
-            const newMessages = myMessages.filter(msg => !msg.read);
-            if (newMessages.length > 0 && isListening) {
-                showNotification(`${newMessages.length} new message(s)!`);
-                newMessages.forEach(msg => markAsRead(msg.id));
+            if (!isListening) return;
+            
+            try {
+                const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
+                console.log('All messages in storage:', messages);
+                
+                // Filter messages for this receiver (case-insensitive)
+                const myMessages = messages.filter(msg => 
+                    msg.receiver && msg.receiver.toUpperCase() === currentUser.receiverId.toUpperCase()
+                );
+                
+                console.log('Messages for me:', myMessages);
+                
+                // Check for new messages since last check
+                const newMessages = myMessages.filter(msg => 
+                    msg.timestamp && new Date(msg.timestamp).getTime() > lastCheckedTime
+                );
+                
+                // Update display
+                displayMessages(myMessages);
+                
+                // Show notification for new messages
+                if (newMessages.length > 0) {
+                    showNotification(`📨 ${newMessages.length} new message(s) received!`);
+                    
+                    // Auto-mark as read after a delay
+                    setTimeout(() => {
+                        newMessages.forEach(msg => markAsRead(msg.id));
+                    }, 2000);
+                }
+                
+                // Update last checked time
+                lastCheckedTime = Date.now();
+                
+            } catch (error) {
+                console.error('Error checking messages:', error);
             }
         }
 
         function displayMessages(messages) {
             const container = document.getElementById('messagesContainer');
             
-            if (messages.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>📭 No messages yet. Start listening to receive messages.</p></div>';
+            if (!messages || messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>📭 No messages yet. Start listening to receive messages.</p>
+                    </div>
+                `;
                 return;
             }
 
-            messages.sort((a, b) => b.id - a.id);
+            // Sort by timestamp (newest first)
+            messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
             container.innerHTML = messages.map(msg => `
                 <div class="message ${msg.read ? '' : 'unread'}" onclick="markAsRead(${msg.id})">
                     <div class="message-header">
-                        <span style="font-weight: 600; color: #ff8a00;">From: ${msg.sender}</span>
-                        <span style="font-size: 0.8rem; opacity: 0.7;">${msg.timestamp}</span>
+                        <span class="sender">👤 From: ${msg.sender || 'Unknown'}</span>
+                        <span class="timestamp">🕒 ${msg.timestamp || 'Unknown time'}</span>
                     </div>
-                    <div style="margin-bottom: 10px;">${msg.message}</div>
+                    <div style="margin-bottom: 10px; font-size: 1.1rem;">${msg.message || 'No content'}</div>
                     <div class="message-header">
-                        <span style="background: ${getPriorityColor(msg.priority)}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">
-                            ${msg.priority.toUpperCase()}
+                        <span class="message-priority priority-${msg.priority || 'medium'}">
+                            ${(msg.priority || 'medium').toUpperCase()} PRIORITY
                         </span>
                         <span style="font-size: 0.8rem; opacity: 0.7;">
                             ${msg.read ? `✅ Read at ${msg.readTimestamp}` : '👆 Click to mark as read'}
@@ -130,24 +205,37 @@
         }
 
         function markAsRead(messageId) {
-            const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
-            const messageIndex = messages.findIndex(msg => msg.id === messageId);
-            
-            if (messageIndex !== -1 && !messages[messageIndex].read) {
-                messages[messageIndex].read = true;
-                messages[messageIndex].readTimestamp = new Date().toLocaleString();
-                localStorage.setItem('pagerMessages', JSON.stringify(messages));
+            try {
+                const messages = JSON.parse(localStorage.getItem('pagerMessages') || '[]');
+                const messageIndex = messages.findIndex(msg => msg.id === messageId);
                 
-                const adminLogs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
-                adminLogs.push({ ...messages[messageIndex], action: 'read' });
-                localStorage.setItem('adminLogs', JSON.stringify(adminLogs));
-                
-                checkForMessages();
+                if (messageIndex !== -1 && !messages[messageIndex].read) {
+                    messages[messageIndex].read = true;
+                    messages[messageIndex].readTimestamp = new Date().toLocaleString();
+                    localStorage.setItem('pagerMessages', JSON.stringify(messages));
+                    
+                    // Log to admin
+                    const adminLogs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
+                    adminLogs.push({
+                        ...messages[messageIndex],
+                        action: 'read'
+                    });
+                    localStorage.setItem('adminLogs', JSON.stringify(adminLogs));
+                    
+                    // Refresh display
+                    checkForMessages();
+                    
+                    console.log('Marked message as read:', messageId);
+                }
+            } catch (error) {
+                console.error('Error marking message as read:', error);
             }
         }
 
-        function getPriorityColor(priority) {
-            return { high: '#e52e71', medium: '#ff8a00', low: '#1a2a6c' }[priority] || '#1a2a6c';
+        function refreshMessages() {
+            console.log('Manual refresh triggered');
+            checkForMessages();
+            showNotification('🔄 Messages refreshed');
         }
 
         function showNotification(message) {
@@ -158,12 +246,27 @@
         }
 
         function logout() {
+            if (isListening) {
+                stopListening();
+            }
             localStorage.removeItem('currentUser');
             window.location.href = 'index.html';
         }
 
+        // Auto-start listening when page loads
         window.addEventListener('load', () => {
-            setTimeout(startListening, 1000);
+            console.log('Receiver page loaded for:', currentUser.receiverId);
+            setTimeout(() => {
+                startListening();
+            }, 1000);
+        });
+
+        // Also listen for storage changes (if sender sends message in same browser)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'pagerMessages' && isListening) {
+                console.log('Storage changed - checking for new messages');
+                checkForMessages();
+            }
         });
     </script>
 </body>
