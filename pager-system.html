@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pager System - Control Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff8a00;
+        }
+        
+        .links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .link-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        .link-card:hover {
+            transform: translateY(-5px);
+            background: rgba(0, 0, 0, 0.4);
+        }
+        
+        .link-card i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ff8a00;
+        }
+        
+        .link-card h2 {
+            margin-bottom: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-satellite-dish"></i> Pager System Control</h1>
+            <p>Central hub for managing pager communications</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="active-senders">0</div>
+                <div>Active Senders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="active-receivers">0</div>
+                <div>Active Receivers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="messages-sent">0</div>
+                <div>Messages Sent</div>
+            </div>
+        </div>
+        
+        <div class="links">
+            <a href="pager-sender.html" class="link-card">
+                <i class="fas fa-paper-plane"></i>
+                <h2>Sender Interface</h2>
+                <p>Send messages to receivers</p>
+            </a>
+            
+            <a href="pager-receiver.html" class="link-card">
+                <i class="fas fa-inbox"></i>
+                <h2>Receiver Interface</h2>
+                <p>Receive and view messages</p>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Simulate system statistics
+        function updateStats() {
+            document.getElementById('active-senders').textContent = 
+                Math.floor(Math.random() * 10) + 1;
+            document.getElementById('active-receivers').textContent = 
+                Math.floor(Math.random() * 50) + 5;
+            document.getElementById('messages-sent').textContent = 
+                Math.floor(Math.random() * 1000) + 250;
+        }
+        
+        // Update stats every 5 seconds
+        updateStats();
+        setInterval(updateStats, 5000);
+        
+        // Store system data in localStorage for communication between files
+        localStorage.setItem('pagerSystemActive', 'true');
+        localStorage.setItem('systemStartTime', new Date().toISOString());
+    </script>
+</body>
+</html>
